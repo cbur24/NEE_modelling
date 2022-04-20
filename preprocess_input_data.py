@@ -17,6 +17,10 @@ def VPD(rh, ta):
 def preprocess_data(base, suffix):
     # load flux data from site
     flux = xr.open_dataset(base+suffix)
+    
+    if "WallabyCreek" in suffix:
+        #clip to before the fire
+        flux = flux.sel(time=slice('2005', '2009'))
 
     # load satellite data from datacuve
     dc = datacube.Datacube(app='NEE flux model')
