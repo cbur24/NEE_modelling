@@ -3,10 +3,11 @@ import numpy as np
 import pandas as pd
 import datacube
 
-from dea_tools.datahandling import load_ard, mostcommon_crs
-from dea_tools.bandindices import calculate_indices
-from dea_tools.classification import HiddenPrints
-
+import sys
+sys.path.append('/g/data/os22/chad_tmp/dea-notebooks/Tools/dea_tools/')
+from datahandling import load_ard, mostcommon_crs
+from bandindices import calculate_indices
+from classification import HiddenPrints
 
 def VPD(rh, ta):
     sat_vp = (6.11 * xr.ufuncs.exp((2500000/461) * (1/273 - 1/(273 + ta))))
@@ -35,7 +36,10 @@ def preprocess_data(base, suffix):
     }
 
     # Identify the most common projection system in the input query
-    output_crs = mostcommon_crs(dc=dc, product='ga_ls8c_ard_3', query=query)
+    try:
+        output_crs = mostcommon_crs(dc=dc, product='ga_ls8c_ard_3', query=query)
+    except:
+        output_crs = mostcommon_crs(dc=dc, product='ga_ls5t_ard_3', query=query)
 
     # Load available data from all three Landsat satellites
     with HiddenPrints():

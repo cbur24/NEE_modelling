@@ -1,10 +1,10 @@
 import os
+import odc.geo.xr
 import xarray as xr
 import numpy as np
 import pandas as pd
-from rasterio.enums import Resampling
-from datacube.utils.geometry import assign_crs
-from datacube.utils.dask import start_local_dask
+from odc.algo import xr_reproject
+from odc.geo.xr import assign_crs
 
 def collect_gridded_data(time, chunks, verbose=True):
     
@@ -15,49 +15,70 @@ def collect_gridded_data(time, chunks, verbose=True):
     base='/g/data/gh70/ANUClimate/v2-0/stable/month/'
     
     Ta = xr.open_mfdataset([base+'tavg/'+time+'/'+i for i in os.listdir(base+'tavg/'+time+'/')]).compute()
+    Ta = assign_crs(Ta, crs='epsg:4283') #GDA94
+    Ta = Ta.drop('crs').tavg
+    Ta = Ta.rename({'lat':'latitude', 'lon':'longitude'})
+    
     precip = xr.open_mfdataset([base+'rain/'+time+'/'+i for i in os.listdir(base+'rain/'+time+'/')]).compute()
-    fn = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
+    precip = assign_crs(precip, crs='epsg:4283') #GDA94
+    precip = precip.drop('crs').rain
+    precip = precip.rename({'lat':'latitude', 'lon':'longitude'})
+    
+    srad = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
+    srad = assign_crs(srad, crs='epsg:4283') #GDA94
+    srad = srad.drop('crs').srad
+    srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
+    
     vpd = xr.open_mfdataset([base+'vpd/'+time+'/'+i for i in os.listdir(base+'vpd/'+time+'/')]).compute()
-    
-    Ta=assign_crs(Ta, crs=Ta.crs.attrs['spatial_ref'])
-    precip = assign_crs(precip, crs=precip.crs.attrs['spatial_ref'])   
-    fn = assign_crs(fn, crs=fn.crs.attrs['spatial_ref'])
-    vpd = assign_crs(vpd, crs=vpd.crs.attrs['spatial_ref'])
+    vpd = assign_crs(vpd, crs='epsg:4283') #GDA94
+    vpd = vpd.drop('crs').vpd
+    vpd = vpd.rename({'lat':'latitude', 'lon':'longitude'})
 
-    clim = xr.merge([Ta, precip, fn, vpd], compat='override')
-    clim = clim.rename({"lon": "x", "lat": "y"})
-    
+    clim = xr.merge([Ta, precip, srad, vpd], compat='override')
+
     #Leaf Area Index from MODIS
     if verbose:
         print('   Extracting MODIS LAI')
-    lai = xr.open_dataset('/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/MOD15A2H.006.b02.500m_lai.'+time+'.nc',
-                          chunks=chunks).rename({"500m_lai": "lai"})
+    lai = xr.open_dataset('/g/data/fj4/MODIS_LAI/AU/nc/MOD15A2H.'+time+'_AU_AWRAgrd.nc', chunks=chunks)
+    lai = assign_crs(lai, crs=lai.crs.spatial_ref)
+    lai = lai.Band1.rename('LAI') #tidy up the dataset
+    lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
+    lai = lai.rename({'lat':'latitude', 'lon':'longitude'})
+    lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
 
-    lai = assign_crs(lai, crs='epsg:4326')
-    lai = lai.lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
-    lai = lai.rename({"longitude": "x", "latitude": "y"})
-    
-#     ## Soil moisture from GRAFS
-    # if verbose:
-    #     print('Extracting soil moisture')
-#     sws = xr.open_dataset('/g/data/ub8/global/GRAFS/GRAFS_RootzoneSoilWaterIndex_'+time+'.nc',
-#                           chunks=chunks)
+    ## Soil moisture from GRAFS
+    if verbose:
+        print('   Extracting soil moisture')
+    sws = xr.open_dataset('/g/data/fj4/SatelliteSoilMoistureProducts/S-GRAFS/ANNUAL_NC/surface_soil_moisture_vol_1km_'+time+'.nc',
+                          chunks=chunks)
+    sws = assign_crs(sws, crs=sws.attrs['crs'][-9:])
+    sws = sws.soil_moisture.where(sws >=0)
+    sws = sws.rename({'lat':'latitude', 'lon':'longitude'})
+    sws = sws.soil_moisture.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
 
-#     sws = assign_crs(sws.soil_water_index, crs='epsg:4326')
-#     sws = sws.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
-#     sws = sws.rename({"lon": "x", "lat": "y"})
-    
-    # Reproject to match climate data 
+    # Reproject to match AWRA 5km grid
     if verbose:
         print('   Reprojecting datasets')
-    lai = lai.rio.reproject_match(clim, resampling=Resampling.average)
-    #sws = sws.rio.reproject_match(clim, resampling=Resampling.bilinear)
+    sws = xr_reproject(sws, geobox=lai.geobox).compute()
+    clim = xr_reproject(clim, geobox=lai.geobox).compute()
+    
+    # Due to precision of Float64 on coordinates, the clim/sws coordinates
+    # didn't quite match the lai coords, resulting in adding spurious pixels after merge.
+    # converting to float32 rounds coords so they match
+    clim['latitude'] = clim.latitude.astype('float32')
+    clim['longitude'] = clim.longitude.astype('float32')
+
+    sws['latitude'] = sws.latitude.astype('float32')
+    sws['longitude'] = sws.longitude.astype('float32')
+
+    lai['latitude'] = lai.latitude.astype('float32')
+    lai['longitude'] = lai.longitude.astype('float32')
     
     #merge all datasets together
-    data = xr.merge([clim, lai], compat='override').drop('crs')
+    data = xr.merge([clim, lai, sws], compat='override')
     
     #create mask where data is valid
-    mask = ~np.isnan(data.tavg.isel(time=0))
+    mask = ~np.isnan(data.LAI.isel(time=0))
     data = data.where(mask)
     
     #add a 1-month lag
@@ -70,5 +91,6 @@ def collect_gridded_data(time, chunks, verbose=True):
     
     if verbose:
         print('   Exporting netcdf')
-    #export data
+    # export data
+    data = data.rename({'latitude':'y', 'longitude':'x'})
     data.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/results/input_data/input_data_'+time+'.nc')
