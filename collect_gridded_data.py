@@ -45,7 +45,22 @@ def collect_gridded_data(time, chunks, verbose=True):
     lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
     lai = lai.rename({'lat':'latitude', 'lon':'longitude'})
     lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
-
+    
+#      # Leaf Area Index from MODIS
+#     base = '/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/'
+#     lai = xr.open_mfdataset([base+i for i in os.listdir(base) if not 'quality' in i])
+    
+#     # indexing values
+#     lat, lon = flux.latitude.values[0], flux.longitude.values[0]
+#     idx=dict(latitude=lat,  longitude=lon)
+#     time_start = np.datetime_as_string(flux.time.values[0], unit='D')
+#     time_end = np.datetime_as_string(flux.time.values[-1], unit='D')
+    
+#     lai = lai['500m_lai'].rename('lai') #tidy up the dataset
+#     lai = lai.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
+#     lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
+#     lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean() # resample to monthly
+    
     ## Soil moisture from GRAFS
     if verbose:
         print('   Extracting soil moisture')
