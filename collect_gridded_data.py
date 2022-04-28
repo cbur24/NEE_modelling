@@ -24,10 +24,10 @@ def collect_gridded_data(time, chunks, verbose=True):
     precip = precip.drop('crs').rain
     precip = precip.rename({'lat':'latitude', 'lon':'longitude'})
     
-    srad = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
-    srad = assign_crs(srad, crs='epsg:4283') #GDA94
-    srad = srad.drop('crs').srad
-    srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
+    # srad = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
+    # srad = assign_crs(srad, crs='epsg:4283') #GDA94
+    # srad = srad.drop('crs').srad
+    # srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
     
     vpd = xr.open_mfdataset([base+'vpd/'+time+'/'+i for i in os.listdir(base+'vpd/'+time+'/')]).compute()
     vpd = assign_crs(vpd, crs='epsg:4283') #GDA94
