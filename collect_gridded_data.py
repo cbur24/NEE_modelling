@@ -12,14 +12,16 @@ def collect_gridded_data(time, verbose=True):
     if verbose:
         print('Collecting data for year: '+time)
         print('   Extracting ANU Climate data')
+        
     base='/g/data/gh70/ANUClimate/v2-0/stable/month/'
-    
-    Ta = xr.open_mfdataset([base+'tavg/'+time+'/'+i for i in os.listdir(base+'tavg/'+time+'/')]).compute()
+    Ta = xr.open_mfdataset([base+'tavg/'+time+'/'+i for i in os.listdir(base+'tavg/'+time+'/')],
+                          chunks=dict(lat=1000, lon=1000)).compute()
     Ta = assign_crs(Ta, crs='epsg:4283') #GDA94
     Ta = Ta.drop('crs').tavg
     Ta = Ta.rename({'lat':'latitude', 'lon':'longitude'})
     
-    precip = xr.open_mfdataset([base+'rain/'+time+'/'+i for i in os.listdir(base+'rain/'+time+'/')]).compute()
+    precip = xr.open_mfdataset([base+'rain/'+time+'/'+i for i in os.listdir(base+'rain/'+time+'/')],
+                              chunks=dict(lat=1000, lon=1000)).compute()
     precip = assign_crs(precip, crs='epsg:4283') #GDA94
     precip = precip.drop('crs').rain
     precip = precip.rename({'lat':'latitude', 'lon':'longitude'})
@@ -29,42 +31,32 @@ def collect_gridded_data(time, verbose=True):
     # srad = srad.drop('crs').srad
     # srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
     
-    vpd = xr.open_mfdataset([base+'vpd/'+time+'/'+i for i in os.listdir(base+'vpd/'+time+'/')]).compute()
+    vpd = xr.open_mfdataset([base+'vpd/'+time+'/'+i for i in os.listdir(base+'vpd/'+time+'/')],
+                           chunks=dict(lat=1000, lon=1000)).compute()
     vpd = assign_crs(vpd, crs='epsg:4283') #GDA94
     vpd = vpd.drop('crs').vpd
     vpd = vpd.rename({'lat':'latitude', 'lon':'longitude'})
 
     clim = xr.merge([Ta, precip, vpd], compat='override')
     
-     # Leaf Area Index from MODIS
+    # Leaf Area Index from MODIS
     if verbose:
-        print('   Extracting MODIS LAI')
-    base = '/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/'
-    lai = xr.open_dataset('/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/MOD15A2H.006.b02.500m_lai.'+time+'.nc',
-                          chunks=dict(latitude=1000, longitude=1000))
-    lai = assign_crs(lai, crs='epsg:4326')
-    lai = lai['500m_lai'].rename('lai') #tidy up the dataset
-    lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
-    lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean() # resample to monthly
+        print('   Loading MODIS LAI')
+    lai = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LAI/LAI_500m_monthly_'+time+'.nc').compute()
     
     ## Soil moisture from GRAFS
     if verbose:
-        print('   Extracting soil moisture')
-    sws = xr.open_dataset('/g/data/fj4/SatelliteSoilMoistureProducts/S-GRAFS/ANNUAL_NC/surface_soil_moisture_vol_1km_'+time+'.nc',
-                          chunks=dict(lat=1000, lon=1000))
-    sws = assign_crs(sws, crs=sws.attrs['crs'][-9:])
-    sws = sws.soil_moisture.where(sws >=0)
-    sws = sws.rename({'lat':'latitude', 'lon':'longitude'})
-    sws = sws.soil_moisture.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean()
+        print('   Loading soil moisture')
+    sws = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/GRAFS/GRAFS_1km_monthly_'+time+'.nc').compute()
 
     # Reproject to match ANU Clim 1km grid
     if verbose:
         print('   Reprojecting datasets')
-    sws = xr_reproject(sws, geobox=lai.geobox).compute()
-    clim = xr_reproject(clim, geobox=lai.geobox).compute()
+    sws = xr_reproject(sws, geobox=clim.geobox, resampling='bilinear')
+    lai = xr_reproject(lai, geobox=clim.geobox, resampling='average')
     
-    # Due to precision of Float64 on coordinates, the clim/sws coordinates
-    # didn't quite match the lai coords, resulting in adding spurious pixels after merge.
+    # Due to precision of Float64 on coordinates, the lai/sws/clim coordinates
+    # don't quite match after reprojection, resulting in adding spurious pixels after merge.
     # converting to float32 rounds coords so they match
     clim['latitude'] = clim.latitude.astype('float32')
     clim['longitude'] = clim.longitude.astype('float32')
@@ -77,9 +69,10 @@ def collect_gridded_data(time, verbose=True):
     
     #merge all datasets together
     data = xr.merge([clim, lai, sws], compat='override')
+    data = data.unify_chunks()
     
-    #create mask where data is valid
-    mask = ~np.isnan(data.lai.isel(time=0))
+    #create mask where data is valid (spurios values from reproject)
+    mask = ~np.isnan(data.tavg.isel(time=0))
     data = data.where(mask)
     
     #add a 1-month lag
