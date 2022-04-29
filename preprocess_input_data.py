@@ -2,7 +2,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 import datacube
-
+import os
 import sys
 sys.path.append('/g/data/os22/chad_tmp/dea-notebooks/Tools/dea_tools/')
 from datahandling import load_ard, mostcommon_crs
@@ -22,7 +22,7 @@ def preprocess_data_insitu(base, suffix):
     if "WallabyCreek" in suffix:
         #clip to before the fire
         flux = flux.sel(time=slice('2005', '2009'))
-
+    
     # Leaf Area Index from MODIS
     base = '/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/'
     lai = xr.open_mfdataset([base+i for i in os.listdir(base) if not 'quality' in i])
@@ -34,7 +34,7 @@ def preprocess_data_insitu(base, suffix):
     time_end = np.datetime_as_string(flux.time.values[-1], unit='D')
     
     lai = lai['500m_lai'].rename('lai') #tidy up the dataset
-    lai = lai.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
+    lai = lai.sel(idx, method='nearest').sel(time=slice(str(time_start), str(time_end))) # grab pixel
     lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
     lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean() # resample to monthly
     lai = lai.reindex(time=flux.time, method='nearest')# ensure lai matches flux
@@ -50,14 +50,13 @@ def preprocess_data_insitu(base, suffix):
         level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
     vp = flux.VP.to_dataframe().reset_index(
         level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
-    fn = flux.Fn.to_dataframe().reset_index(
-        level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
+    # fn = flux.Fn.to_dataframe().reset_index(
+    #     level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
     prec = flux.Precip.to_dataframe().reset_index(
         level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
-    lai = lai.to_dataframe().reset_index(
-        level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
+    lai = lai.to_dataframe().drop(['latitude', 'longitude'], axis=1)
 
-    df = nee.join([ta, sws, rh, vp, fn, prec, lai])
+    df = nee.join([ta, sws, rh, vp, prec, lai])
     df = df.dropna()
 
     # calculate VPD
@@ -73,7 +72,7 @@ def preprocess_data_insitu(base, suffix):
 
     # add lags
     df_lag1 = df.drop('NEE_LT', axis=1).shift(1)
-    df = df.join(df_lag1, rsuffix='_L2')
+    df = df.join(df_lag1, rsuffix='_L1')
     df = df.dropna()
 
     return df
@@ -142,7 +141,7 @@ def preprocess_data_gridded(base, suffix, verbose=False):
 
     # add lags
     df_lag1 = df.drop('NEE_LT', axis=1).shift(1)
-    df = df.join(df_lag1, rsuffix='_L2')
+    df = df.join(df_lag1, rsuffix='_L1')
     df = df.dropna()
 
     return df

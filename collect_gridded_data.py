@@ -6,7 +6,7 @@ import pandas as pd
 from odc.algo import xr_reproject
 from odc.geo.xr import assign_crs
 
-def collect_gridded_data(time, chunks, verbose=True):
+def collect_gridded_data(time, verbose=True):
     
     # Retrieving ANU climate data (1 km resolution)
     if verbose:
@@ -34,44 +34,30 @@ def collect_gridded_data(time, chunks, verbose=True):
     vpd = vpd.drop('crs').vpd
     vpd = vpd.rename({'lat':'latitude', 'lon':'longitude'})
 
-    clim = xr.merge([Ta, precip, srad, vpd], compat='override')
-
-    #Leaf Area Index from MODIS
+    clim = xr.merge([Ta, precip, vpd], compat='override')
+    
+     # Leaf Area Index from MODIS
     if verbose:
         print('   Extracting MODIS LAI')
-    lai = xr.open_dataset('/g/data/fj4/MODIS_LAI/AU/nc/MOD15A2H.'+time+'_AU_AWRAgrd.nc', chunks=chunks)
-    lai = assign_crs(lai, crs=lai.crs.spatial_ref)
-    lai = lai.Band1.rename('LAI') #tidy up the dataset
+    base = '/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/'
+    lai = xr.open_dataset('/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/MOD15A2H.006.b02.500m_lai.'+time+'.nc',
+                          chunks=dict(latitude=1000, longitude=1000))
+    lai = assign_crs(lai, crs='epsg:4326')
+    lai = lai['500m_lai'].rename('lai') #tidy up the dataset
     lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
-    lai = lai.rename({'lat':'latitude', 'lon':'longitude'})
-    lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
-    
-#      # Leaf Area Index from MODIS
-#     base = '/g/data/ub8/au/MODIS/mosaic/MOD15A2H.006/'
-#     lai = xr.open_mfdataset([base+i for i in os.listdir(base) if not 'quality' in i])
-    
-#     # indexing values
-#     lat, lon = flux.latitude.values[0], flux.longitude.values[0]
-#     idx=dict(latitude=lat,  longitude=lon)
-#     time_start = np.datetime_as_string(flux.time.values[0], unit='D')
-#     time_end = np.datetime_as_string(flux.time.values[-1], unit='D')
-    
-#     lai = lai['500m_lai'].rename('lai') #tidy up the dataset
-#     lai = lai.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
-#     lai = lai.where((lai <= 10) & (lai >=0)) #remove artefacts and 'no-data'
-#     lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean() # resample to monthly
+    lai = lai.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean() # resample to monthly
     
     ## Soil moisture from GRAFS
     if verbose:
         print('   Extracting soil moisture')
     sws = xr.open_dataset('/g/data/fj4/SatelliteSoilMoistureProducts/S-GRAFS/ANNUAL_NC/surface_soil_moisture_vol_1km_'+time+'.nc',
-                          chunks=chunks)
+                          chunks=dict(lat=1000, lon=1000))
     sws = assign_crs(sws, crs=sws.attrs['crs'][-9:])
     sws = sws.soil_moisture.where(sws >=0)
     sws = sws.rename({'lat':'latitude', 'lon':'longitude'})
-    sws = sws.soil_moisture.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean().compute()
+    sws = sws.soil_moisture.resample(time='MS', loffset=pd.Timedelta(14, 'd')).mean()
 
-    # Reproject to match AWRA 5km grid
+    # Reproject to match ANU Clim 1km grid
     if verbose:
         print('   Reprojecting datasets')
     sws = xr_reproject(sws, geobox=lai.geobox).compute()
@@ -93,7 +79,7 @@ def collect_gridded_data(time, chunks, verbose=True):
     data = xr.merge([clim, lai, sws], compat='override')
     
     #create mask where data is valid
-    mask = ~np.isnan(data.LAI.isel(time=0))
+    mask = ~np.isnan(data.lai.isel(time=0))
     data = data.where(mask)
     
     #add a 1-month lag

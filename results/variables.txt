@@ -1,1 +1,1 @@
-Ta,Sws,Fn,Precip,LAI,VPD,Ta_L2,Sws_L2,Fn_L2,Precip_L2,LAI_L2,VPD_L2,
+Ta,Sws,Precip,lai,VPD,Ta_L1,Sws_L1,Precip_L1,lai_L1,VPD_L1,
