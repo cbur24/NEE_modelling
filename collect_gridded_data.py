@@ -20,16 +20,26 @@ def collect_gridded_data(time, verbose=True):
     Ta = Ta.drop('crs').tavg
     Ta = Ta.rename({'lat':'latitude', 'lon':'longitude'})
     
+#     Tmax = xr.open_mfdataset([base+'tmax/'+time+'/'+i for i in os.listdir(base+'tmax/'+time+'/')]).compute()
+#     Tmax = assign_crs(Tmax, crs='epsg:4283') #GDA94
+#     Tmax = Tmax.drop('crs').tmax
+#     Tmax = Tmax.rename({'lat':'latitude', 'lon':'longitude'})
+    
+#     Tmin = xr.open_mfdataset([base+'tmin/'+time+'/'+i for i in os.listdir(base+'tmin/'+time+'/')]).compute()
+#     Tmin = assign_crs(Tmin, crs='epsg:4283') #GDA94
+#     Tmin = Tmin.drop('crs').tmin
+#     Tmin = Tmin.rename({'lat':'latitude', 'lon':'longitude'})
+
+    # srad = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
+    # srad = assign_crs(srad, crs='epsg:4283') #GDA94
+    # srad = srad.drop('crs').srad
+    # srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
+    
     precip = xr.open_mfdataset([base+'rain/'+time+'/'+i for i in os.listdir(base+'rain/'+time+'/')],
                               chunks=dict(lat=1000, lon=1000)).compute()
     precip = assign_crs(precip, crs='epsg:4283') #GDA94
     precip = precip.drop('crs').rain
     precip = precip.rename({'lat':'latitude', 'lon':'longitude'})
-    
-    # srad = xr.open_mfdataset([base+'srad/'+time+'/'+i for i in os.listdir(base+'srad/'+time+'/')]).compute()
-    # srad = assign_crs(srad, crs='epsg:4283') #GDA94
-    # srad = srad.drop('crs').srad
-    # srad = srad.rename({'lat':'latitude', 'lon':'longitude'})
     
     vpd = xr.open_mfdataset([base+'vpd/'+time+'/'+i for i in os.listdir(base+'vpd/'+time+'/')],
                            chunks=dict(lat=1000, lon=1000)).compute()

@@ -68,8 +68,6 @@ def preprocess_data_insitu(base, suffix):
     # fig,ax=plt.subplots(1,1, figsize=(8,8))
     # sb.heatmap(corr, cmap="bwr_r", annot=True, ax=ax, cbar=False, mask=mask);
 
-    #df = df.resample('Q-DEC').mean()
-
     # add lags
     df_lag1 = df.drop('NEE_LT', axis=1).shift(1)
     df = df.join(df_lag1, rsuffix='_L1')
