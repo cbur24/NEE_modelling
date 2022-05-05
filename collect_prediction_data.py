@@ -6,7 +6,7 @@ import pandas as pd
 from odc.algo import xr_reproject
 from odc.geo.xr import assign_crs
 
-def collect_gridded_data(time, verbose=True):
+def collect_prediction_data(time, verbose=True):
     
     # Retrieving ANU climate data (1 km resolution)
     if verbose:
@@ -97,4 +97,4 @@ def collect_gridded_data(time, verbose=True):
         print('   Exporting netcdf')
     # export data
     data = data.rename({'latitude':'y', 'longitude':'x'})
-    data.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/results/input_data/input_data_'+time+'.nc')
+    data.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/results/prediction_data/prediction_data_'+time+'.nc')
