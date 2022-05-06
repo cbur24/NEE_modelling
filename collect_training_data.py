@@ -43,7 +43,7 @@ def extract_ec_gridded_data(suffix, verbose=False):
     time_start = str(np.datetime_as_string(flux.time.values[0], unit='D'))
     time_end = str(np.datetime_as_string(flux.time.values[-1], unit='D'))
     idx=dict(latitude=lat,  longitude=lon)
-    
+
     # extract co2 fluxes and environ data from EC data
     if verbose:
         print('   Extracting EC data')
@@ -107,6 +107,7 @@ def extract_ec_gridded_data(suffix, verbose=False):
     sm = sm.reindex(time=flux.time, method='nearest', tolerance='1D').compute()
     sm = sm.soil_moisture.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
+    
     # Delta temp
     if verbose:
         print('   Extracting dT')
@@ -118,44 +119,52 @@ def extract_ec_gridded_data(suffix, verbose=False):
     # SPEI
     if verbose:
         print('   Extracting SPEI')
-    spei = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/AWRA_spei_5km_gamma_06.nc')
+    spei = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc')
+    spei = spei.rename({'spei_gamma_06':'spei'})
     spei = spei.rename({'lat':'latitude', 'lon':'longitude'})
     spei = spei.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     spei = spei.reindex(time=flux.time, method='nearest', tolerance='1D').compute() # ensure lai matches flux
-    spei = spei.spei_gamma_06.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    spei = spei.spei.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
     # Climate
     if verbose:
         print('   Extracting AWRA Climate')
     solar = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/solar_monthly_wm2_2000_2021.nc')
-    solar = solar.rename({'solar_exposure_day':'solar_exposure_month'})
+    solar = solar.rename({'solar_exposure_day':'solar'})
     solar = solar.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
     solar = solar.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
-    solar = solar.solar_exposure_month.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    solar = solar.solar.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
     tavg = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/tavg_monthly_1991_2021.nc')
+    tavg = tavg.rename({'temp_avg_month':'Ta'})
     tavg = tavg.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
     tavg = tavg.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
-    tavg = tavg.temp_avg_month.to_dataframe().drop(['latitude', 'longitude'], axis=1)
+    tavg = tavg.Ta.to_dataframe().drop(['latitude', 'longitude'], axis=1)
     
     vpd = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/vpd_monthly_2000_2021.nc')
     vpd = vpd.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
     vpd = vpd.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
     vpd = vpd.VPD.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
 
-    rain = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/rain_monthly_1991_2021.nc')
+    rain = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_aus_monthly_1991_2021.nc')
     rain = rain.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
     rain = rain.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
-    rain = rain.rain_month.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    rain = rain.precip.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
     #add lags to rainfall
-    rain_l1 = rain.shift(1).rename({'rain_month':'rain_month_L1'},axis=1)
-    rain_l2 = rain.shift(2).rename({'rain_month':'rain_month_L2'},axis=1)
-    rain_l3 = rain.shift(3).rename({'rain_month':'rain_month_L3'},axis=1)
+    rain_l1 = rain.shift(1).rename({'precip':'precip_L1'},axis=1)
+    rain_l2 = rain.shift(2).rename({'precip':'precip_L2'},axis=1)
+    rain_l3 = rain.shift(3).rename({'precip':'precip_L3'},axis=1)
     rain = rain.join([rain_l1,rain_l2,rain_l3])
     
+    # landcover
+    lc = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/IGBP_Landcover_MODIS_5km.nc')
+    lc = lc.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
+    lc = lc.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
+    lc = lc.IGBP_class.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    
     # join all the datasets
-    df_rs = lai.join([lst,fpar,sm,dT,spei,solar,tavg,vpd,rain])
+    df_rs = lai.join([lst,fpar,sm,dT,spei,solar,tavg,vpd,rain,lc])
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
     
