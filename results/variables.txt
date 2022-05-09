@@ -1,1 +1,1 @@
-GPP_SOLO,ER_SOLO,lai,LST,Fpar,soil_moisture,LST-Tair,spei_gamma_06,solar_exposure_month,temp_avg_month,VPD,rain_month,
+lai_RS,LST_RS,Fpar_RS,LST-Tair_RS,spei_RS,solar_RS,Ta_RS,VPD_RS,precip_RS,precip_L1_RS,precip_L2_RS,precip_L3_RS,IGBP_class_RS,
