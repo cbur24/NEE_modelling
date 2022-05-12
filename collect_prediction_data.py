@@ -65,13 +65,20 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     rain = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_aus_monthly_1991_2021.nc'))
     rain = rain.sel(time=slice(time_start, time_end))
 
-    #add lags to rainfall
+    
+    # Three-monthly cumulative rainfall
     if verbose:
-        print('   Adding Rainfall lags')
-    rain_l1 = rain.shift(time=1).rename({'precip':'precip_L1'})
-    rain_l2 = rain.shift(time=2).rename({'precip':'precip_L2'})
-    rain_l3 = rain.shift(time=3).rename({'precip':'precip_L3'})
-    rain = xr.merge([rain,rain_l1,rain_l2,rain_l3])
+        print('   Cumulative rainfall')
+    rain_cum = rain.rolling(time=3, min_periods=1).sum()
+    rain_cum = rain_cum.rename({'precip':'precip_cml'},axis=1)
+    
+#     #add lags to rainfall
+#     if verbose:
+#         print('   Adding Rainfall lags')
+#     rain_l1 = rain.shift(time=1).rename({'precip':'precip_L1'})
+#     rain_l2 = rain.shift(time=2).rename({'precip':'precip_L2'})
+#     rain_l3 = rain.shift(time=3).rename({'precip':'precip_L3'})
+#     rain = xr.merge([rain,rain_l1,rain_l2,rain_l3])
     
     # landcover
     if verbose:

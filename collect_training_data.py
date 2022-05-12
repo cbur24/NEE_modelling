@@ -151,11 +151,16 @@ def extract_ec_gridded_data(suffix, verbose=False):
     rain = rain.reindex(time=flux.time, method='nearest', tolerance='1D').compute() 
     rain = rain.precip.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
-    #add lags to rainfall
-    rain_l1 = rain.shift(1).rename({'precip':'precip_L1'},axis=1)
-    rain_l2 = rain.shift(2).rename({'precip':'precip_L2'},axis=1)
-    rain_l3 = rain.shift(3).rename({'precip':'precip_L3'},axis=1)
-    rain = rain.join([rain_l1,rain_l2,rain_l3])
+    # Three-monthly cumulative rainfall
+    if verbose:
+        print('   Cumulative rainfall')
+    rain_cum = rain.rolling(3, min_periods=1).sum()
+    rain_cum = rain_cum.rename({'precip':'precip_cml'},axis=1)
+    
+    # rain_l1 = rain.shift(1).rename({'precip':'precip_L1'},axis=1)
+    # rain_l2 = rain.shift(2).rename({'precip':'precip_L2'},axis=1)
+    # rain_l3 = rain.shift(3).rename({'precip':'precip_L3'},axis=1)
+    # rain = rain.join([rain_l1,rain_l2,rain_l3])
     
     # landcover
     lc = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/IGBP_Landcover_MODIS_5km.nc')
@@ -164,10 +169,10 @@ def extract_ec_gridded_data(suffix, verbose=False):
     lc = lc.IGBP_class.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     
     # join all the datasets
-    df_rs = lai.join([lst,fpar,sm,dT,spei,solar,tavg,vpd,rain,lc])
+    df_rs = lai.join([lst,fpar,sm,dT,spei,solar,tavg,vpd,rain,rain_cum,lc])
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
     
-    df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:3]+'_training_data.csv')
+    df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
 
     return df
