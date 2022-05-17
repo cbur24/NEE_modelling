@@ -1,1 +1,1 @@
-lai_RS,LST_RS,Fpar_RS,LST-Tair_RS,spei_RS,solar_RS,Ta_RS,VPD_RS,precip_RS,precip_L1_RS,precip_L2_RS,precip_L3_RS,IGBP_class_RS,
+lai_RS,LST_RS,Fpar_RS,LST-Tair_RS,spei_RS,solar_RS,Ta_RS,VPD_RS,precip_RS,precip_cml_RS,IGBP_class_RS,

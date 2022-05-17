@@ -69,8 +69,8 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     # Three-monthly cumulative rainfall
     if verbose:
         print('   Cumulative rainfall')
-    rain_cum = rain.rolling(time=3, min_periods=1).sum()
-    rain_cum = rain_cum.rename({'precip':'precip_cml'},axis=1)
+    rain_cml = rain.rolling(time=3, min_periods=1).sum()
+    rain_cml = rain_cml.rename({'precip':'precip_cml'})
     
 #     #add lags to rainfall
 #     if verbose:
@@ -89,7 +89,7 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,lst,fpar,dT,spei,solar,tavg,vpd,rain,lc], compat='override')
+    data = xr.merge([lai,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml,lc], compat='override')
     
     #create mask where data is valid (spurios values from reproject)
     mask = ~np.isnan(data.precip.isel(time=0))
