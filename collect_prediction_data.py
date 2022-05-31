@@ -22,6 +22,11 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     lai = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LAI_5km_monthly_2002_2021.nc'))
     lai = lai.sel(time=slice(time_start, time_end))
     
+    if verbose:
+        print('   Extracting MODIS EVI')
+    evi = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/EVI_5km_monthly_2002_2021.nc'))
+    evi = evi.sel(time=slice(time_start, time_end))
+    
     # LST from MODIS
     if verbose:
         print('   Extracting MODIS LST')
@@ -65,33 +70,26 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     rain = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_aus_monthly_1991_2021.nc'))
     rain = rain.sel(time=slice(time_start, time_end))
 
-    
     # Three-monthly cumulative rainfall
     if verbose:
         print('   Cumulative rainfall')
-    rain_cml = rain.rolling(time=3, min_periods=1).sum()
-    rain_cml = rain_cml.rename({'precip':'precip_cml'})
-    
-#     #add lags to rainfall
-#     if verbose:
-#         print('   Adding Rainfall lags')
-#     rain_l1 = rain.shift(time=1).rename({'precip':'precip_L1'})
-#     rain_l2 = rain.shift(time=2).rename({'precip':'precip_L2'})
-#     rain_l3 = rain.shift(time=3).rename({'precip':'precip_L3'})
-#     rain = xr.merge([rain,rain_l1,rain_l2,rain_l3])
+    rain_cml_3 = rain.rolling(time=3, min_periods=1).sum()
+    rain_cml_3 = rain_cml_3.rename({'precip':'precip_cml_3'})
+    rain_cml_6 = rain.rolling(time=6, min_periods=1).sum()
+    rain_cml_6 = rain_cml_6.rename({'precip':'precip_cml_6'})
     
     # landcover
     if verbose:
         print('   Adding Landcover class')
-    lc = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/IGBP_Landcover_MODIS_5km.nc'))
+    lc = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc'))
     lc = lc.sel(time=slice(time_start, time_end))
     
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml,lc], compat='override')
+    data = xr.merge([lai,evi,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,lc], compat='override')
     
-    #create mask where data is valid (spurios values from reproject)
+    #create mask where data is valid (spurious values from reproject)
     mask = ~np.isnan(data.precip.isel(time=0))
     data = data.where(mask)
     
