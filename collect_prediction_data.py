@@ -42,7 +42,7 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     # Delta temp
     if verbose:
         print('   Extracting dT')
-    dT = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_2002_2021.nc'))
+    dT = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_5km_2002_2021.nc'))
     dT = dT.sel(time=slice(time_start, time_end))
     
     # SPEI
@@ -73,10 +73,8 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     # Three-monthly cumulative rainfall
     if verbose:
         print('   Cumulative rainfall')
-    rain_cml_3 = rain.rolling(time=3, min_periods=1).sum()
-    rain_cml_3 = rain_cml_3.rename({'precip':'precip_cml_3'})
-    rain_cml_6 = rain.rolling(time=6, min_periods=1).sum()
-    rain_cml_6 = rain_cml_6.rename({'precip':'precip_cml_6'})
+    rain_cml_3 = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml3_1991_2021.nc'))
+    rain_cml_3 = rain_cml_3.sel(time=slice(time_start, time_end))
     
     # landcover
     if verbose:
@@ -87,7 +85,7 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,evi,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,lc], compat='override')
+    data = xr.merge([lai,evi,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml_3,lc], compat='override')
     
     #create mask where data is valid (spurious values from reproject)
     mask = ~np.isnan(data.precip.isel(time=0))
