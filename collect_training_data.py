@@ -27,7 +27,7 @@ def climate_vars(path, flux_time, rename, time_start, time_end, idx):
         ds = ds[list(rename.values())[0]].to_dataframe().drop(['latitude', 'longitude'], axis=1)
     return ds
 
-def rs_vars(path var, flux_time, time_start, time_end, idx):
+def rs_vars(path, var, flux_time, time_start, time_end, idx):
     ds = xr.open_dataset(path)
     ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
@@ -81,7 +81,7 @@ def extract_ec_gridded_data(suffix, verbose=False):
     if verbose:
         print('   Extracting MODIS LAI')
     lai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/LAI_5km_monthly_2002_2021.nc',
-                  'lai', flux.time, time_start, time_end, idx)
+                  'LAI', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting MODIS EVI')
@@ -95,18 +95,23 @@ def extract_ec_gridded_data(suffix, verbose=False):
 
     if verbose:
         print('   Extracting MODIS fPAR')
-    fpar = rs_vars('g/data/os22/chad_tmp/NEE_modelling/data/FPAR_5km_monthly_2002_2021.nc',
+    fpar = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/FPAR_5km_monthly_2002_2021.nc',
                   'Fpar', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting dT')
     dT = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_5km_2002_2021.nc',
                         flux.time, {'LST-Tair':'LST-Tair'}, time_start, time_end, idx)
-
+    
     if verbose:
-        print('   Extracting SPEI')
-    spei = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc',
-                        flux.time, {'spei_gamma_06':'spei'}, time_start, time_end, idx)
+        print('   Extracting Aridity Index')
+    ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc',
+                  'AI', flux.time, time_start, time_end, idx)
+
+    # if verbose:
+    #     print('   Extracting SPEI')
+    # spei = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc',
+    #                     flux.time, {'spei_gamma_06':'spei'}, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting AWRA Climate')
@@ -133,7 +138,8 @@ def extract_ec_gridded_data(suffix, verbose=False):
                         flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
     
     # join all the datasets
-    df_rs = lai.join([lst,evi,fpar,sm,dT,spei,solar,tavg,vpd,rain,rain_cml_3,lc])
+    df_rs = lai.join([evi,lst,fpar,dT,ai,solar,tavg,vpd,rain,rain_cml_3,lc])
+                      
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
     

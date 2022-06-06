@@ -16,7 +16,6 @@ def round_coords(ds):
 
 def collect_prediction_data(time_start, time_end, verbose=True):
     
-    # Leaf Area Index from MODIS
     if verbose:
         print('   Extracting MODIS LAI')
     lai = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LAI_5km_monthly_2002_2021.nc'))
@@ -27,31 +26,33 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     evi = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/EVI_5km_monthly_2002_2021.nc'))
     evi = evi.sel(time=slice(time_start, time_end))
     
-    # LST from MODIS
     if verbose:
         print('   Extracting MODIS LST')
     lst = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LST_5km_monthly_2002_2021.nc'))
     lst = lst.sel(time=slice(time_start, time_end))
     
-    # fPAR from MODIS
     if verbose:
         print('   Extracting MODIS fPAR')
     fpar = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/FPAR_5km_monthly_2002_2021.nc'))
     fpar = fpar.sel(time=slice(time_start, time_end))
     
-    # Delta temp
     if verbose:
         print('   Extracting dT')
     dT = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_5km_2002_2021.nc'))
     dT = dT.sel(time=slice(time_start, time_end))
     
-    # SPEI
     if verbose:
-        print('   Extracting SPEI')
-    spei = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc')
-    spei = spei.rename({'spei_gamma_06':'spei'})
-    spei = round_coords(spei.rename({'lat':'latitude', 'lon':'longitude'}))
-    spei = spei.sel(time=slice(time_start, time_end))
+        print('   Extracting Aridity Index')
+    ai = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc'))
+    ai = ai.sel(time=slice(time_start, time_end))
+    
+    # # SPEI
+    # if verbose:
+    #     print('   Extracting SPEI')
+    # spei = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc')
+    # spei = spei.rename({'spei_gamma_06':'spei'})
+    # spei = round_coords(spei.rename({'lat':'latitude', 'lon':'longitude'}))
+    # spei = spei.sel(time=slice(time_start, time_end))
 
     # Climate
     if verbose:
@@ -85,10 +86,10 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,evi,lst,fpar,dT,spei,solar,tavg,vpd,rain,rain_cml_3,lc], compat='override')
+    data = xr.merge([lai,evi,lst,fpar,dT,ai,solar,tavg,vpd,rain,rain_cml_3,lc], compat='override')
     
-    #create mask where data is valid (spurious values from reproject)
-    mask = ~np.isnan(data.precip.isel(time=0))
+    #create mask where data is valid
+    mask = ~np.isnan(data['PFT'].isel(time=0))
     data = data.where(mask)
     
     if verbose:
