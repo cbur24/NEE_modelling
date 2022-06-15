@@ -31,7 +31,10 @@ def rs_vars(path, var, flux_time, time_start, time_end, idx):
     ds = xr.open_dataset(path)
     ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
-    ds = ds[var].to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    try:
+        ds = ds[var].to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+    except:
+        ds = ds[var].to_dataframe().drop(['latitude', 'longitude'], axis=1)
     return ds
 
 def extract_ec_gridded_data(suffix, verbose=False):
@@ -64,7 +67,7 @@ def extract_ec_gridded_data(suffix, verbose=False):
     if verbose:
         print('   Extracting EC data')
     
-    variables = ['GPP_SOLO','ER_SOLO','Ta','Sws','RH','VP','Precip','Fn','Fe','Fh','Fsd','Fld']
+    variables = ['GPP_SOLO','ER_SOLO','Ta','Sws','RH','VP','Precip','Fn','Fe','Fh','Fsd','Fld','CO2']
     nee = ec_vars(flux, 'NEE_SOLO') #extract first variable
     df_ec=[]
     for var in variables: #loop through other vars
@@ -97,7 +100,22 @@ def extract_ec_gridded_data(suffix, verbose=False):
         print('   Extracting MODIS fPAR')
     fpar = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/FPAR_5km_monthly_2002_2021.nc',
                   'Fpar', flux.time, time_start, time_end, idx)
+ 
+    if verbose:
+        print('   Extracting MODIS Tree Cover')
+    tree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Tree_cover_5km_monthly_2002_2021.nc',
+                  'tree_cover', flux.time, time_start, time_end, idx)
     
+    if verbose:
+        print('   Extracting MODIS NonTree Cover')
+    nontree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/NonTree_cover_5km_monthly_2002_2021.nc',
+                  'nontree_cover', flux.time, time_start, time_end, idx)
+    
+    if verbose:
+        print('   Extracting MODIS NonVeg Cover')
+    nonveg = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/NonVeg_cover_5km_monthly_2002_2021.nc',
+                  'nonveg_cover', flux.time, time_start, time_end, idx)
+
     if verbose:
         print('   Extracting dT')
     dT = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_5km_2002_2021.nc',
@@ -107,11 +125,6 @@ def extract_ec_gridded_data(suffix, verbose=False):
         print('   Extracting Aridity Index')
     ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc',
                   'AI', flux.time, time_start, time_end, idx)
-
-    # if verbose:
-    #     print('   Extracting SPEI')
-    # spei = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc',
-    #                     flux.time, {'spei_gamma_06':'spei'}, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting AWRA Climate')
@@ -131,19 +144,27 @@ def extract_ec_gridded_data(suffix, verbose=False):
         print('   Cumulative rainfall')
     rain_cml_3 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml3_1991_2021.nc',
                         flux.time, {'precip_cml_3':'precip_cml_3'}, time_start, time_end, idx)
+
+    rain_cml_6 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml6_1991_2021.nc',
+                    flux.time, {'precip_cml_6':'precip_cml_6'}, time_start, time_end, idx)
+
+    # if verbose:
+    #     print('   Landcover')
+    # lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc',
+    #                     flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
     
-    if verbose:
-        print('   Landcover')
-    lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc',
-                        flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
+    # if verbose:
+    #     print('   Extracting SPEI')
+    # spei = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc',
+    #                     flux.time, {'spei_gamma_06':'spei'}, time_start, time_end, idx)
     
     # join all the datasets
-    df_rs = lai.join([evi,lst,fpar,dT,ai,solar,tavg,vpd,rain,rain_cml_3,lc])
+    df_rs = lai.join([evi,lst,fpar,tree,nontree,nonveg,dT,ai,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6])
                       
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
     
-    df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:3]+'_training_data.csv')
+    df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
 
     return df
     
