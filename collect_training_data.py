@@ -37,7 +37,7 @@ def rs_vars(path, var, flux_time, time_start, time_end, idx):
         ds = ds[var].to_dataframe().drop(['latitude', 'longitude'], axis=1)
     return ds
 
-def extract_ec_gridded_data(suffix, verbose=False):
+def extract_ec_gridded_data(suffix, return_coords=True, verbose=False):
     """
     Extract variables from EC tower data, and environmental
     data from remote sensing/climate datasets over pixels at EC
@@ -67,7 +67,7 @@ def extract_ec_gridded_data(suffix, verbose=False):
     if verbose:
         print('   Extracting EC data')
     
-    variables = ['GPP_SOLO','ER_SOLO','Ta','Sws','RH','VP','Precip','Fn','Fe','Fh','Fsd','Fld','CO2']
+    variables = ['GPP_SOLO','ER_SOLO','ET','Ta','Sws','RH','VP','Precip','Fn','Fe','Fh','Fsd','Fld','CO2']
     nee = ec_vars(flux, 'NEE_SOLO') #extract first variable
     df_ec=[]
     for var in variables: #loop through other vars
@@ -121,11 +121,31 @@ def extract_ec_gridded_data(suffix, verbose=False):
     dT = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/LST_Tair_5km_2002_2021.nc',
                         flux.time, {'LST-Tair':'LST-Tair'}, time_start, time_end, idx)
     
-    if verbose:
-        print('   Extracting Aridity Index')
-    ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc',
-                  'AI', flux.time, time_start, time_end, idx)
+    # if verbose:
+    #     print('   Extracting Aridity Index')
+    # ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc',
+    #               'AI', flux.time, time_start, time_end, idx)
     
+    if verbose:
+        print('   Extracting Moisture Index')
+    
+    #coastal locations sometimes grab NaN over ocean for Moisture Index so shifting location slightly
+    if 'CowBay' in suffix:
+        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Moisture_index_5km_monthly_2002_2021.nc',
+                  'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
+    
+    elif 'CapeTribulation' in suffix:
+        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Moisture_index_5km_monthly_2002_2021.nc',
+                  'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
+    
+    elif 'Otway' in suffix:
+        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Moisture_index_5km_monthly_2002_2021.nc',
+                  'MI', flux.time, time_start, time_end, dict(latitude=-38.45, longitude=idx['longitude']))
+    
+    else:
+        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Moisture_index_5km_monthly_2002_2021.nc',
+              'MI', flux.time, time_start, time_end, idx)
+
     if verbose:
         print('   Extracting AWRA Climate')
     solar = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/solar_monthly_wm2_2000_2021.nc',
@@ -147,11 +167,16 @@ def extract_ec_gridded_data(suffix, verbose=False):
 
     rain_cml_6 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml6_1991_2021.nc',
                     flux.time, {'precip_cml_6':'precip_cml_6'}, time_start, time_end, idx)
-
-    # if verbose:
-    #     print('   Landcover')
-    # lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc',
-    #                     flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
+    
+    if verbose:
+        print('   Extracting TWI')
+    twi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/TWI_5km_monthly_2002_2021.nc',
+                  'TWI', flux.time, time_start, time_end, idx)
+    
+    if verbose:
+        print('   Landcover')
+    lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc',
+                        flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
     
     # if verbose:
     #     print('   Extracting SPEI')
@@ -159,10 +184,14 @@ def extract_ec_gridded_data(suffix, verbose=False):
     #                     flux.time, {'spei_gamma_06':'spei'}, time_start, time_end, idx)
     
     # join all the datasets
-    df_rs = lai.join([evi,lst,fpar,tree,nontree,nonveg,dT,ai,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6])
+    df_rs = lai.join([evi,lst,fpar,tree,nontree,nonveg,dT,mi,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,twi,lc])
                       
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
+    
+    if return_coords:
+        df['x_coord'] = lon
+        df['y_coord'] = lat
     
     df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
 

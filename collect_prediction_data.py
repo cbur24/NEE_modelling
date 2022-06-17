@@ -42,17 +42,9 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     dT = dT.sel(time=slice(time_start, time_end))
     
     if verbose:
-        print('   Extracting Aridity Index')
-    ai = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc'))
-    ai = ai.sel(time=slice(time_start, time_end))
-    
-    # # SPEI
-    # if verbose:
-    #     print('   Extracting SPEI')
-    # spei = xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/SPEI/chirps_spei_gamma_06.nc')
-    # spei = spei.rename({'spei_gamma_06':'spei'})
-    # spei = round_coords(spei.rename({'lat':'latitude', 'lon':'longitude'}))
-    # spei = spei.sel(time=slice(time_start, time_end))
+        print('   Extracting Moisture Index')
+    mi = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/Moisture_index_5km_monthly_2002_2021.nc'))
+    mi = mi.sel(time=slice(time_start, time_end))
 
     # Climate
     if verbose:
@@ -77,17 +69,32 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     rain_cml_3 = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml3_1991_2021.nc'))
     rain_cml_3 = rain_cml_3.sel(time=slice(time_start, time_end))
     
-    # landcover
+    rain_cml_6 = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/chirps_cml6_1991_2021.nc'))
+    rain_cml_6 = rain_cml_6.sel(time=slice(time_start, time_end))
+    
+    # VCF
     if verbose:
-        print('   Adding Landcover class')
+        print('   Adding Vegetation fractions')
+    tree = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/Tree_cover_5km_monthly_2002_2021.nc'))
+    tree = tree.sel(time=slice(time_start, time_end))
+    
+    nontree = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/NonTree_cover_5km_monthly_2002_2021.nc'))
+    nontree = nontree.sel(time=slice(time_start, time_end))
+    
+    nonveg = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/NonVeg_cover_5km_monthly_2002_2021.nc'))
+    nonveg = nonveg.sel(time=slice(time_start, time_end))
+    
+    twi = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/TWI_5km_monthly_2002_2021.nc'))
+    twi = twi.sel(time=slice(time_start, time_end))
+    
     lc = round_coords(xr.open_dataset('/g/data/os22/chad_tmp/NEE_modelling/data/Landcover_merged_5km.nc'))
     lc = lc.sel(time=slice(time_start, time_end))
     
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,evi,lst,fpar,dT,ai,solar,tavg,vpd,rain,rain_cml_3,lc], compat='override')
-    
+    data = xr.merge([lai,evi,lst,fpar,tree,nontree,nonveg,dT,mi,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,twi,lc], compat='no_conflicts')
+                         
     #create mask where data is valid
     mask = ~np.isnan(data['PFT'].isel(time=0))
     data = data.where(mask)
