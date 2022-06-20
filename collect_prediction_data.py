@@ -1,6 +1,7 @@
 import os
 import xarray as xr
 import numpy as np
+from odc.geo.xr import assign_crs
 
 
 def round_coords(ds):
@@ -11,6 +12,10 @@ def round_coords(ds):
     """
     ds['latitude'] = ds.latitude.astype('float32')
     ds['longitude'] = ds.longitude.astype('float32')
+    try:
+        ds = ds.drop('spatial_ref')
+    except:
+        pass
     return ds
     
 
@@ -93,9 +98,9 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     #merge all datasets together
     if verbose:
         print('   Merge and create valid data mask')
-    data = xr.merge([lai,evi,lst,fpar,tree,nontree,nonveg,dT,mi,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,twi,lc], compat='no_conflicts')
+    data = xr.merge([lai,evi,lst,fpar,tree,nontree,nonveg,dT,mi,solar,tavg,vpd,rain,rain_cml_3,rain_cml_6,twi,lc], compat='override')
                          
-    #create mask where data is valid
+    #create mask where data is valid (excludes urban, water)
     mask = ~np.isnan(data['PFT'].isel(time=0))
     data = data.where(mask)
     
@@ -104,6 +109,7 @@ def collect_prediction_data(time_start, time_end, verbose=True):
     # export data
     data = data.rename({'latitude':'y', 'longitude':'x'}) #this helps with predict_xr
     data = data.astype('float32') #make sure all data is in float32
+    data = assign_crs(data, crs='epsg:4326')
     
     data.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/results/prediction_data/prediction_data_'+time_start+'_'+time_end+'.nc')
     
