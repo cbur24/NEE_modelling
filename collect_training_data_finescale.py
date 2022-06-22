@@ -81,76 +81,75 @@ def extract_ec_gridded_data(suffix, return_coords=True, verbose=False):
     
     df_ec = nee.join(df_ec) #join other vars to NEE
     df_ec = df_ec.add_suffix('_EC')
-    
-    
-    
+ 
     # calculate VPD on ec data
     df_ec['VPD_EC'] = VPD(df_ec.RH_EC, df_ec.Ta_EC)
     df_ec = df_ec.drop(['VP_EC'], axis=1) # drop VP
     
     if verbose:
         print('   Extracting MODIS LAI')
-    lai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/LAI_5km_monthly_2002_2021.nc',
+    lai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/LAI_1km_monthly_2002_2021.nc',
                   'LAI', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting MODIS EVI')
-    evi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/EVI_5km_monthly_2002_2021.nc',
+    evi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/EVI_1km_monthly_2002_2021.nc',
                   'EVI', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting MODIS LST')
-    lst = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/LST_5km_monthly_2002_2021.nc',
+    lst = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/LST_1km_monthly_2002_2021.nc',
                   'LST', flux.time, time_start, time_end, idx)
 
     if verbose:
         print('   Extracting MODIS fPAR')
-    fpar = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/FPAR_5km_monthly_2002_2021.nc',
-                  'Fpar', flux.time, time_start, time_end, idx)
+    fpar = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/FPAR_1km_monthly_2002_2021.nc',
+                  'FPAR', flux.time, time_start, time_end, idx)
  
     if verbose:
         print('   Extracting MODIS Tree Cover')
-    tree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Tree_cover_5km_monthly_2002_2021.nc',
+    tree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/Tree_1km_monthly_2002_2021.nc',
                   'tree_cover', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting MODIS NonTree Cover')
-    nontree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/NonTree_cover_5km_monthly_2002_2021.nc',
+    nontree = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/NonTree_1km_monthly_2002_2021.nc',
                   'nontree_cover', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting MODIS NonVeg Cover')
-    nonveg = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/NonVeg_cover_5km_monthly_2002_2021.nc',
+    nonveg = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/NonVeg_1km_monthly_2002_2021.nc',
                   'nonveg_cover', flux.time, time_start, time_end, idx)
 
     if verbose:
         print('   Extracting dT')
-    dT = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/LST_Tair_5km_2002_2021.nc',
+    dT = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/LST_Tair_5km_monthly_2002_2021.nc',
                         flux.time, {'LST-Tair':'LST-Tair'}, time_start, time_end, idx)
     
-    # if verbose:
-    #     print('   Extracting Aridity Index')
-    # ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AridityIndex_5km_2002_2021.nc',
-    #               'AI', flux.time, time_start, time_end, idx)
+    if verbose:
+        print('   Extracting Aridity Index')
+    ai = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/AridityIndex_1km_monthly_2002_2021.nc',
+                  'AI', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting Moisture Index')
     
     #coastal locations sometimes grab NaN over ocean for Moisture Index so shifting location slightly
+    mi_path = '/g/data/os22/chad_tmp/NEE_modelling/data/5km/MoistureIndex_5km_monthly_2002_2021.nc'
     if 'CowBay' in suffix:
-        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Moisture_index_5km_monthly_2002_2021.nc',
+        mi = rs_vars(mi_path,
                   'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
     
     elif 'CapeTribulation' in suffix:
-        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Moisture_index_5km_monthly_2002_2021.nc',
+        mi = rs_vars(mi_path,
                   'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
     
     elif 'Otway' in suffix:
-        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Moisture_index_5km_monthly_2002_2021.nc',
+        mi = rs_vars(mi_path,
                   'MI', flux.time, time_start, time_end, dict(latitude=-38.45, longitude=idx['longitude']))
     
     else:
-        mi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Moisture_index_5km_monthly_2002_2021.nc',
+        mi = rs_vars(mi_path,
               'MI', flux.time, time_start, time_end, idx)
 
     if verbose:
@@ -164,25 +163,25 @@ def extract_ec_gridded_data(suffix, return_coords=True, verbose=False):
     vpd = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/vpd_monthly_2000_2021.nc',
                         flux.time, {'VPD':'VPD'}, time_start, time_end, idx)
     
-    rain =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_aus_monthly_1991_2021.nc',
+    rain =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_5km_monthly_1991_2021.nc',
                         flux.time, {'precip':'precip'}, time_start, time_end, idx)
     
     if verbose:
         print('   Cumulative rainfall')
-    rain_cml_3 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml3_1991_2021.nc',
+    rain_cml_3 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml3_5km_monthly_1991_2021.nc',
                         flux.time, {'precip_cml_3':'precip_cml_3'}, time_start, time_end, idx)
 
-    rain_cml_6 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml6_1991_2021.nc',
+    rain_cml_6 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml6_5km_monthly_1991_2021.nc',
                     flux.time, {'precip_cml_6':'precip_cml_6'}, time_start, time_end, idx)
     
     if verbose:
         print('   Extracting TWI')
-    twi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/TWI_5km_monthly_2002_2021.nc',
+    twi = rs_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/TWI_1km_monthly_2002_2021.nc',
                   'TWI', flux.time, time_start, time_end, idx)
     
     if verbose:
         print('   Landcover')
-    lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/Landcover_merged_5km.nc',
+    lc = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/1km/Landcover_1km_monthly_2002_2021.nc',
                         flux.time, {'PFT':'PFT'}, time_start, time_end, idx)
     
     # if verbose:

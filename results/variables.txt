@@ -1,1 +1,1 @@
-LAI_RS,EVI_RS,LST_RS,Fpar_RS,tree_cover_RS,nontree_cover_RS,nonveg_cover_RS,LST-Tair_RS,MI_RS,solar_RS,Ta_RS,VPD_RS,precip_RS,precip_cml_3_RS,precip_cml_6_RS,TWI_RS,
+LAI_RS,EVI_RS,LST_RS,FPAR_RS,tree_cover_RS,nontree_cover_RS,nonveg_cover_RS,LST-Tair_RS,MI_RS,solar_RS,Ta_RS,VPD_RS,precip_RS,precip_cml_3_RS,precip_cml_6_RS,TWI_RS,
