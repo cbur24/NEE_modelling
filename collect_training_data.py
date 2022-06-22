@@ -53,6 +53,11 @@ def extract_ec_gridded_data(suffix, return_coords=True, verbose=False):
     # load flux data from site
     flux = xr.open_dataset(base+suffix)
     
+    # Set negative GPP, ER, and ET measurements as zero
+    flux['GPP_SOLO'] = xr.where(flux.GPP_SOLO < 0, 0, flux.GPP_SOLO)
+    flux['ET'] = xr.where(flux.ET < 0, 0, flux.ET)
+    flux['ER_SOLO'] = xr.where(flux.ER_SOLO < 0, 0, flux.ET)
+    
     # offset time to better match gridded data
     flux['time'] = flux.time + np.timedelta64(14,'D') 
     
@@ -76,6 +81,8 @@ def extract_ec_gridded_data(suffix, return_coords=True, verbose=False):
     
     df_ec = nee.join(df_ec) #join other vars to NEE
     df_ec = df_ec.add_suffix('_EC')
+    
+    
     
     # calculate VPD on ec data
     df_ec['VPD_EC'] = VPD(df_ec.RH_EC, df_ec.Ta_EC)
