@@ -110,7 +110,7 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
     
     #extract the rest of the RS variables in loop
     rs_variables=['EVI','LST','FPAR','Tree','NonTree','NonVeg','LST_Tair',
-               'AridityIndex','TWI', 'NDWI','FireDisturbanceTrees','Landcover']
+               'AridityIndex','TWI', 'NDWI','FireDisturbance','Landcover']
     names = ['EVI','LST','FPAR','tree_cover','nontree_cover','nonveg_cover','LST-Tair',
                'AI','TWI','NDWI','Months_since_burn','PFT']
     dffs = []
@@ -179,6 +179,9 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
     if return_coords:
         df['x_coord'] = lon
         df['y_coord'] = lat
+    
+    # add a LST-Tair using EC air temp instead of RS air temp
+    df['LST-Tair_EC'] = (df['LST_RS']- 273.15) - df['Ta_EC']
     
     df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
 
