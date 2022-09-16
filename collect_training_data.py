@@ -9,36 +9,55 @@ def VPD(rh, ta):
     vpd = (((100 - rh)/100) * sat_vp)
     return vpd
 
-def ec_vars(flux, var):
+def extract_ec_vars(flux, var):
     df = flux[var].to_dataframe().reset_index(
         level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
     return df
 
-def climate_vars(path, flux_time, rename, time_start, time_end, idx):
-    ds = xr.open_dataset(path)
-    ds = ds.rename(rename)
-    if "spei" in path:
-        ds = ds .rename({'lat':'latitude', 'lon':'longitude'})
-    ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end))
-    ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
-    try:
-        ds = ds[list(rename.values())[0]].to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
-    except:
-        ds = ds[list(rename.values())[0]].to_dataframe().drop(['latitude', 'longitude'], axis=1)
-    return ds
-
-def rs_vars(path, var, flux_time, time_start, time_end, idx):
-    ds = xr.open_dataset(path)
+def extract_rs_vars(path, flux_time, time_start, time_end, idx):
+    ds = xr.open_dataarray(path)
     ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
     try:
-        ds = ds[var].to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
+        ds = ds.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     except:
-        ds = ds[var].to_dataframe().drop(['latitude', 'longitude'], axis=1)
+        ds = ds.to_dataframe().drop(['latitude', 'longitude'], axis=1)
     return ds
 
-def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
-                            return_coords=True, verbose=False):
+def extract_ec_gridded_data(suffix,
+                            scale='1km',
+                            covariables=[
+                                 #'LAI',
+                                 'LAI_anom',
+                                 #'kNDVI',
+                                 'kNDVI_anom',
+                                 'FPAR',
+                                 'LST',
+                                 'Tree',
+                                 'NonTree',
+                                 'NonVeg',
+                                 'LST_Tair',
+                                 'TWI',
+                                 'NDWI',
+                                 #'NDWI_anom',
+                                 #'rain'
+                                 'rain_anom',
+                                 'rain_cml3_anom',
+                                 #'rain_cml6_anom',
+                                 'rain_cml12_anom',
+                                 'CWD',
+                                 'srad',
+                                 'vpd',
+                                 #'tavg',
+                                 'tavg_anom',
+                                 'SOC',
+                                 'CO2'
+                                 #'FireDisturbance'
+                            ],
+                            save_ec_data=False,
+                            return_coords=True,
+                            verbose=False
+                           ):
     """
     Extract variables from EC tower data, and environmental
     data from remote sensing/climate datasets over pixels at EC
@@ -61,7 +80,7 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
         EC data and gridded data.
         
     """
-    
+    #-----Eddy covaraince data--------------------------------------------
     base = 'https://dap.tern.org.au/thredds/dodsC/ecosystem_process/ozflux/'
     
     # load flux data from site
@@ -84,15 +103,15 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
     time_end = str(np.datetime_as_string(flux.time.values[-1], unit='D'))
     idx=dict(latitude=lat,  longitude=lon)
 
-    # extract co2 fluxes and environ data from EC data
+    # extract carbon fluxes and environ data from EC data
     if verbose:
         print('   Extracting EC data')
     
     variables = ['GPP_SOLO','ER_SOLO','ET','Ta','Sws','RH','VP','Precip','Fn','Fe','Fh','Fsd','Fld','CO2']
-    nee = ec_vars(flux, 'NEE_SOLO') #extract first variable
+    nee = extract_ec_vars(flux, 'NEE_SOLO') #extract first variable
     df_ec=[]
     for var in variables: #loop through other vars
-        df = ec_vars(flux, var)
+        df = extract_ec_vars(flux, var)
         df_ec.append(df)
     
     df_ec = nee.join(df_ec) #join other vars to NEE
@@ -102,76 +121,28 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
     df_ec['VPD_EC'] = VPD(df_ec.RH_EC, df_ec.Ta_EC)
     df_ec = df_ec.drop(['VP_EC'], axis=1) # drop VP
     
-    #extract the first remote sensing variable
-    if verbose:
-        print('   Extracting LAI')
-    lai = rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/LAI_{scale}_monthly_2002_2021.nc',
-                  'LAI', flux.time, time_start, time_end, idx)
+    #--------Remote sensing data--------------------------------------
     
-    #extract the rest of the RS variables in loop
-    rs_variables=['EVI','LST','FPAR','Tree','NonTree','NonVeg','LST_Tair',
-               'AridityIndex','TWI', 'NDWI','FireDisturbance','Landcover']
-    names = ['EVI','LST','FPAR','tree_cover','nontree_cover','nonveg_cover','LST-Tair',
-               'AI','TWI','NDWI','Months_since_burn','PFT']
+    # extract the first remote sensing variable
+    first_var = covariables[0]
+    if verbose:
+        print('   Extracting '+first_var)
+    first = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{first_var}_{scale}_monthly_2002_2021.nc',
+                  flux.time, time_start, time_end, idx)
+    
+    #extract the rest of the RS variables in loop    
     dffs = []
-    for var, name in zip(rs_variables,names):
+    for var in covariables[1:]:
         if verbose:
             print(f'   Extracting {var}')
-        
-        if var == 'LST_Tair':    
-            df = rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/5km/{var}_5km_monthly_2002_2021.nc',
-                  name, flux.time, time_start, time_end, idx)
-        
-        else:
-            df = rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2021.nc',
-                  name, flux.time, time_start, time_end, idx)
+            
+        df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2021.nc',
+                   flux.time, time_start, time_end, idx)
         
         dffs.append(df)
     
-    #handle MI differently
-    if verbose:
-        print('   Extracting MoistureIndex')
-    #coastal locations sometimes grab NaN over ocean for Moisture Index so shifting location slightly
-    mi_path = '/g/data/os22/chad_tmp/NEE_modelling/data/5km/MoistureIndex_5km_monthly_2002_2021.nc'
-    if 'CowBay' in suffix:
-        mi = rs_vars(mi_path,
-                  'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
-    
-    elif 'CapeTribulation' in suffix:
-        mi = rs_vars(mi_path,
-                  'MI', flux.time, time_start, time_end, dict(latitude=idx['latitude'], longitude=142.35))
-    
-    elif 'Otway' in suffix:
-        mi = rs_vars(mi_path,
-                  'MI', flux.time, time_start, time_end, dict(latitude=-38.45, longitude=idx['longitude']))
-    
-    else:
-        mi = rs_vars(mi_path,
-              'MI', flux.time, time_start, time_end, idx)
-
-    if verbose:
-        print('   Extracting Climate')
-    solar = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/solar_monthly_wm2_2000_2021.nc',
-                        flux.time, {'solar_exposure_day':'solar'}, time_start, time_end, idx)
-    
-    tavg = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/tavg_monthly_1991_2021.nc',
-                        flux.time, {'temp_avg_month':'Ta'}, time_start, time_end, idx)
-    
-    vpd = climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/AWRA/vpd_monthly_2000_2021.nc',
-                        flux.time, {'VPD':'VPD'}, time_start, time_end, idx)
-    
-    rain =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_5km_monthly_1991_2021.nc',
-                        flux.time, {'precip':'precip'}, time_start, time_end, idx)
-    
-    rain_cml_3 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml3_5km_monthly_1991_2021.nc',
-                        flux.time, {'precip_cml_3':'precip_cml_3'}, time_start, time_end, idx)
-
-    rain_cml_6 =  climate_vars('/g/data/os22/chad_tmp/NEE_modelling/data/5km/chirps_cml6_5km_monthly_1991_2021.nc',
-                    flux.time, {'precip_cml_6':'precip_cml_6'}, time_start, time_end, idx)
-    
     # join all the datasets
-    all_dfs = dffs+[solar,tavg,vpd,rain,rain_cml_3,rain_cml_6]
-    df_rs = lai.join(all_dfs)
+    df_rs = first.join(dffs)
                       
     df_rs = df_rs.add_suffix('_RS') 
     df = df_ec.join(df_rs)
@@ -181,7 +152,7 @@ def extract_ec_gridded_data(suffix, scale='1km', save_ec_data=False,
         df['y_coord'] = lat
     
     # add a LST-Tair using EC air temp instead of RS air temp
-    df['LST-Tair_EC'] = (df['LST_RS']- 273.15) - df['Ta_EC']
+    #df['LST-Tair_EC'] = (df['LST_RS']- 273.15) - df['Ta_EC']
     
     df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
 
