@@ -39,9 +39,9 @@ def collect_prediction_data(time_start,
                                  #'rain'
                                  'rain_anom',
                                  'rain_cml3_anom',
-                                 #'rain_cml6_anom',
+                                 'rain_cml6_anom',
                                  'rain_cml12_anom',
-                                 'CWD',
+                                 #'CWD',
                                  'srad',
                                  'vpd',
                                  #'tavg',
@@ -50,7 +50,7 @@ def collect_prediction_data(time_start,
                                  'CO2'
                                  #'FireDisturbance'
                             ],
-                            chunks=dict(latitude=1200, longitude=1200),
+                            chunks=dict(latitude=750, longitude=750, time=1),
                             export=False,
                             verbose=True
                            ):
