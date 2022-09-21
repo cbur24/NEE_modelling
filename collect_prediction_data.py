@@ -4,6 +4,38 @@ import numpy as np
 from odc.geo.xr import assign_crs
 
 
+def allNaN_arg(da, dim, stat):
+    """
+    Calculate da.argmax() or da.argmin() while handling
+    all-NaN slices. Fills all-NaN locations with an
+    float and then masks the offending cells.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+    dim : str
+        Dimension over which to calculate argmax, argmin e.g. 'time'
+    stat : str
+        The statistic to calculte, either 'min' for argmin()
+        or 'max' for .argmax()
+
+    Returns
+    -------
+    xarray.DataArray
+    """
+    # generate a mask where entire axis along dimension is NaN
+    mask = da.isnull().all(dim)
+
+    if stat == "max":
+        y = da.fillna(float(da.min() - 1))
+        y = y.argmax(dim=dim, skipna=True).where(~mask)
+        return y
+
+    if stat == "min":
+        y = da.fillna(float(da.max() + 1))
+        y = y.argmin(dim=dim, skipna=True).where(~mask)
+        return y
+
 def round_coords(ds):
     """
     Due to precision of float64 on coordinates, the lai/lst/fpar coordinates
@@ -24,7 +56,7 @@ def collect_prediction_data(time_start,
                             scale='1km',
                             covariables=[
                                #'LAI',
-                                 'LAI_anom',
+                                 #'LAI_anom',
                                  #'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
@@ -47,7 +79,7 @@ def collect_prediction_data(time_start,
                                  #'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 'CO2'
+                                 #'CO2'
                                  #'FireDisturbance'
                             ],
                             chunks=dict(latitude=750, longitude=750, time=1),

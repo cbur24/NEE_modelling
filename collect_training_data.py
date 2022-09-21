@@ -28,7 +28,7 @@ def extract_ec_gridded_data(suffix,
                             scale='1km',
                             covariables=[
                                  #'LAI',
-                                 'LAI_anom',
+                                 #'LAI_anom',
                                  #'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
