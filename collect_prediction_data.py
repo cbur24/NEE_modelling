@@ -38,16 +38,16 @@ def allNaN_arg(da, dim, stat):
 
 def round_coords(ds):
     """
-    Due to precision of float64 on coordinates, the lai/lst/fpar coordinates
+    Due to precision of float64 on coordinates, coordinates
     don't quite match after reprojection, resulting in adding spurious
     pixels after merge. Converting to float32 rounds coords so they match.
     """
     ds['latitude'] = ds.latitude.astype('float32')
     ds['longitude'] = ds.longitude.astype('float32')
-    try:
-        ds = ds.drop('spatial_ref')
-    except:
-        pass
+    
+    ds['latitude'] = np.array([round(i,4) for i in ds.latitude.values])
+    ds['longitude'] = np.array([round(i,4) for i in ds.longitude.values])
+    
     return ds
     
 
@@ -60,7 +60,7 @@ def collect_prediction_data(time_start,
                                  #'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
-                                 #'LST',
+                                 'LST',
                                  'Tree',
                                  'NonTree',
                                  'NonVeg',
@@ -79,7 +79,7 @@ def collect_prediction_data(time_start,
                                  #'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 #'CO2'
+                                 'CO2'
                                  #'FireDisturbance'
                             ],
                             chunks=dict(latitude=750, longitude=750, time=1),
