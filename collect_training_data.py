@@ -14,14 +14,20 @@ def extract_ec_vars(flux, var):
         level=[1, 2]).drop(['latitude', 'longitude'], axis=1)
     return df
 
-def extract_rs_vars(path, flux_time, time_start, time_end, idx):
-    ds = xr.open_dataarray(path)
+def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=False):
+    if add_comparisons:
+        ds = xr.open_dataset(path)
+    else:
+        ds = xr.open_dataarray(path)
+
     ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
+
     try:
         ds = ds.to_dataframe().drop(['latitude', 'longitude', 'spatial_ref'], axis=1)
     except:
         ds = ds.to_dataframe().drop(['latitude', 'longitude'], axis=1)
+    
     return ds
 
 def extract_ec_gridded_data(suffix,
@@ -54,6 +60,7 @@ def extract_ec_gridded_data(suffix,
                                  'CO2'
                                  #'FireDisturbance'
                             ],
+                            add_comparisons=False,
                             save_ec_data=False,
                             return_coords=True,
                             verbose=False
@@ -151,6 +158,19 @@ def extract_ec_gridded_data(suffix,
         df['x_coord'] = lon
         df['y_coord'] = lat
     
+    time = df.reset_index()['time'].dt.normalize()
+    df = df.set_index(time)
+    
+    if add_comparisons:
+        others_gpp = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/harmonized_gpp.nc',
+                   time, time_start, time_end, idx, add_comparisons=add_comparisons)
+        
+        others_nee = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/harmonized_nee.nc',
+                   time, time_start, time_end, idx, add_comparisons=add_comparisons)
+        
+        df = pd.merge(df, others_nee, left_index=True, right_index=True)
+        df = pd.merge(df, others_gpp, left_index=True, right_index=True)
+        
     # add a LST-Tair using EC air temp instead of RS air temp
     #df['LST-Tair_EC'] = (df['LST_RS']- 273.15) - df['Ta_EC']
     
