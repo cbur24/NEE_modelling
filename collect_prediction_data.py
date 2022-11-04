@@ -79,7 +79,8 @@ def collect_prediction_data(time_start,
                                  #'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 'CO2'
+                                 'CO2',
+                                 'C4Percent'
                                  #'FireDisturbance'
                             ],
                             chunks=dict(latitude=750, longitude=750, time=1),

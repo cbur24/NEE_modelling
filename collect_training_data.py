@@ -57,7 +57,8 @@ def extract_ec_gridded_data(suffix,
                                  #'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 'CO2'
+                                 'CO2',
+                                 'C4Percent'
                                  #'FireDisturbance'
                             ],
                             add_comparisons=False,
