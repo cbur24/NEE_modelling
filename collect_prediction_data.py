@@ -4,7 +4,7 @@ import numpy as np
 from odc.geo.xr import assign_crs
 
 
-def allNaN_arg(da, dim, stat):
+def allNaN_arg(da, dim, stat, idx=True):
     """
     Calculate da.argmax() or da.argmin() while handling
     all-NaN slices. Fills all-NaN locations with an
@@ -18,6 +18,9 @@ def allNaN_arg(da, dim, stat):
     stat : str
         The statistic to calculte, either 'min' for argmin()
         or 'max' for .argmax()
+    idx : bool
+        If True then use da.idxmax() or da.idxmin(), otherwise
+        use ds.argmax() or ds.argmin()
 
     Returns
     -------
@@ -28,12 +31,18 @@ def allNaN_arg(da, dim, stat):
 
     if stat == "max":
         y = da.fillna(float(da.min() - 1))
-        y = y.argmax(dim=dim, skipna=True).where(~mask)
+        if idx==True:
+            y = y.idxmax(dim=dim, skipna=True).where(~mask)
+        else:
+            y = y.argmax(dim=dim, skipna=True).where(~mask)
         return y
 
     if stat == "min":
         y = da.fillna(float(da.max() + 1))
-        y = y.argmin(dim=dim, skipna=True).where(~mask)
+        if idx==True:
+            y = y.idxmin(dim=dim, skipna=True).where(~mask)
+        else:
+            y = y.argmin(dim=dim, skipna=True).where(~mask)
         return y
 
 def round_coords(ds):
