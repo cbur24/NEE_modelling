@@ -65,7 +65,7 @@ def collect_prediction_data(time_start,
                             scale='1km',
                             covariables=[
                                #'LAI',
-                                 'LAI_anom',
+                                 #'LAI_anom',
                                  #'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
@@ -88,13 +88,14 @@ def collect_prediction_data(time_start,
                                  #'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 'CO2',
-                                 'C4Percent',
+                                 #'CO2',
+                                 'C4percent',
                                  'Elevation',
-                                 'MOY'
+                                 #'MOY',
+                                 'VegH'
                                  #'FireDisturbance'
                             ],
-                            chunks=dict(latitude=750, longitude=750, time=1),
+                            chunks=dict(latitude=1100, longitude=1100, time=1),
                             export=False,
                             verbose=True
                            ):
