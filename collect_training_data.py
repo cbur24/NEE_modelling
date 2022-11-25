@@ -61,7 +61,8 @@ def extract_ec_gridded_data(suffix,
                                  'C4percent',
                                  'Elevation',
                                  'MOY',
-                                 'VegH'
+                                 'VegH',
+                                 'MI'
                                  #'FireDisturbance'
                             ],
                             add_comparisons=False,

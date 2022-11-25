@@ -91,8 +91,9 @@ def collect_prediction_data(time_start,
                                  #'CO2',
                                  'C4percent',
                                  'Elevation',
-                                 #'MOY',
-                                 'VegH'
+                                 'MOY',
+                                 'VegH',
+                                 'MI'
                                  #'FireDisturbance'
                             ],
                             chunks=dict(latitude=1100, longitude=1100, time=1),
