@@ -35,9 +35,10 @@ def extract_ec_gridded_data(suffix,
                             covariables=[
                                  #'LAI',
                                  'LAI_anom',
-                                 #'kNDVI',
+                                 'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
+                                 'FPAR-NDVI',
                                  'LST',
                                  'Tree',
                                  'NonTree',
@@ -147,8 +148,13 @@ def extract_ec_gridded_data(suffix,
     for var in covariables[1:]:
         if verbose:
             print(f'   Extracting {var}')
+         
+        if var=='MI': #temporary just for testing
+            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/5km/MI_5km_monthly_2002_2021.nc',
+                   flux.time, time_start, time_end, idx)
             
-        df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2021.nc',
+        else:
+            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2021.nc',
                    flux.time, time_start, time_end, idx)
         
         dffs.append(df)

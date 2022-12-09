@@ -66,9 +66,10 @@ def collect_prediction_data(time_start,
                             covariables=[
                                #'LAI',
                                  #'LAI_anom',
-                                 #'kNDVI',
+                                 'kNDVI',
                                  'kNDVI_anom',
                                  'FPAR',
+                                 'FPAR-NDVI'
                                  'LST',
                                  'Tree',
                                  'NonTree',
