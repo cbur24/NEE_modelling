@@ -64,12 +64,12 @@ def collect_prediction_data(time_start,
                             time_end,
                             scale='1km',
                             covariables=[
-                               #'LAI',
+                                 #'LAI',
                                  #'LAI_anom',
                                  'kNDVI',
                                  'kNDVI_anom',
-                                 'FPAR',
-                                 'FPAR-NDVI'
+                                 #'FPAR',
+                                 'FPAR-NDVI',
                                  'LST',
                                  'Tree',
                                  'NonTree',
@@ -77,25 +77,24 @@ def collect_prediction_data(time_start,
                                  'LST_Tair',
                                  'TWI',
                                  'NDWI',
-                                 #'NDWI_anom',
-                                 #'rain'
+                                 'NDWI_anom',
+                                 'rain',
                                  'rain_anom',
                                  'rain_cml3_anom',
                                  'rain_cml6_anom',
                                  'rain_cml12_anom',
-                                 #'CWD',
+                                 'srad',
                                  'srad_anom',
                                  'vpd',
-                                 #'tavg',
+                                 'tavg',
                                  'tavg_anom',
                                  'SOC',
-                                 #'CO2',
+                                 'CO2',
                                  'C4percent',
                                  'Elevation',
                                  'MOY',
                                  'VegH',
                                  'MI'
-                                 #'FireDisturbance'
                             ],
                             chunks=dict(latitude=1100, longitude=1100, time=1),
                             export=False,
@@ -113,7 +112,7 @@ def collect_prediction_data(time_start,
                             )
         ds = ds.sel(time=slice(time_start, time_end))
         
-        #makse sure coords match (trailing zeros)
+        #makse sure coords match (remove trailing zeros)
         ds['latitude'] = ds.latitude.astype('float32')
         ds['latitude'] = np.array([round(i,4) for i in ds.latitude.values])
         ds['longitude'] = ds.longitude.astype('float32')
