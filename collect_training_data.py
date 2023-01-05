@@ -114,7 +114,7 @@ def extract_ec_gridded_data(suffix,
     time_start = str(np.datetime_as_string(flux.time.values[0], unit='D'))
     time_end = str(np.datetime_as_string(flux.time.values[-1], unit='D'))
     idx=dict(latitude=lat,  longitude=lon)
-
+    print(idx)
     # extract carbon fluxes and environ data from EC data
     if verbose:
         print('   Extracting EC data')
