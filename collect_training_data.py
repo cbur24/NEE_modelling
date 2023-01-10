@@ -113,8 +113,12 @@ def extract_ec_gridded_data(suffix,
     lon = flux.longitude.values[0]
     time_start = str(np.datetime_as_string(flux.time.values[0], unit='D'))
     time_end = str(np.datetime_as_string(flux.time.values[-1], unit='D'))
-    idx=dict(latitude=lat,  longitude=lon)
-    print(idx)
+    
+    if "TiTreeEast" in suffix: #metadata on nc file is wrong
+        idx=dict(latitude=-22.287,  longitude=133.640)
+    else:
+        idx=dict(latitude=lat,  longitude=lon)
+         
     # extract carbon fluxes and environ data from EC data
     if verbose:
         print('   Extracting EC data')
