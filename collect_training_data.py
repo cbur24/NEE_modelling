@@ -116,6 +116,10 @@ def extract_ec_gridded_data(suffix,
     
     if "TiTreeEast" in suffix: #metadata on nc file is wrong
         idx=dict(latitude=-22.287,  longitude=133.640)
+    
+    if "DalyPasture" in suffix: #metadata on nc file is wrong
+        idx=dict(latitude=-14.0633,  longitude=131.3181)
+    
     else:
         idx=dict(latitude=lat,  longitude=lon)
          
