@@ -17,6 +17,12 @@ def extract_ec_vars(flux, var):
 def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=False):
     if add_comparisons:
         ds = xr.open_dataset(path)
+        if 'FLUXCOM' in path:
+            ds = ds*30
+        try:
+            ds = ds.rename({'y':'latitude', 'x':'longitude'})
+        except:
+            pass
     else:
         ds = xr.open_dataarray(path)
 
@@ -71,6 +77,7 @@ def extract_ec_gridded_data(suffix,
                             add_comparisons=False,
                             save_ec_data=False,
                             return_coords=True,
+                            export_path=None,
                             verbose=False
                            ):
     """
@@ -183,19 +190,38 @@ def extract_ec_gridded_data(suffix,
     df = df.set_index(time)
     
     if add_comparisons:
-        others_gpp = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/harmonized_gpp.nc',
+        others = {
+            'MODIS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/1km/MODIS_GPP_1km_monthly_2002_2021.nc',
+            'GOSIF_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/5km/GOSIF_GPP_5km_monthly_2002_2021.nc',
+            'CABLE_BIOS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
+            'CABLE_BIOS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
+            'CABLE_BIOS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
+            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/NEE_2003_2021_5km_LGBM_20230109.nc',
+            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/GPP_2003_2021_5km_LGBM_20230109.nc',
+            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/ER_2003_2021_5km_LGBM_20230109.nc',
+            'FLUXCOM_RS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs.nc',
+            'FLUXCOM_RS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs.nc',
+            'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc'
+        }
+        other_dffs = []
+        for prod in others.items():
+            other = extract_rs_vars(prod[1],
                    time, time_start, time_end, idx, add_comparisons=add_comparisons)
-        
-        others_nee = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/harmonized_nee.nc',
-                   time, time_start, time_end, idx, add_comparisons=add_comparisons)
-        
-        df = pd.merge(df, others_nee, left_index=True, right_index=True)
-        df = pd.merge(df, others_gpp, left_index=True, right_index=True)
-        
-    # add a LST-Tair using EC air temp instead of RS air temp
-    #df['LST-Tair_EC'] = (df['LST_RS']- 273.15) - df['Ta_EC']
+            # print(other)
+            other = other.rename({other.columns[0] : prod[0]}, axis=1)
+            
+            if prod[0]=='MODIS_GPP':
+                other['MODIS_GPP'] = other['MODIS_GPP']*1000
+            
+            other_dffs.append(other)
+            # df = pd.merge(df, others_nee, left_index=True, right_index=True)
+            # df = pd.merge(df, others_gpp, left_index=True, right_index=True)
+            # df = pd.merge(df, others_er, left_index=True, right_index=True)
+        df = df.join(other_dffs)
+        df = df.drop(['NEE_mad', 'GPP_mad', 'TER_mad'], axis=1)
     
-    df.to_csv('/g/data/os22/chad_tmp/NEE_modelling/results/training_data/'+suffix[0:5]+'_training_data.csv')
+    if export_path:
+        df.to_csv(export_path+suffix[0:5]+'_training_data.csv')
 
     return df
     
