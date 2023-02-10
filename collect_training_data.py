@@ -16,7 +16,10 @@ def extract_ec_vars(flux, var):
 
 def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=False):
     if add_comparisons:
-        ds = xr.open_dataset(path)
+        if 'quantiles' in path:
+            ds = xr.open_dataset(path).sel(quantile=0.5).drop('quantile')
+        else:
+            ds = xr.open_dataset(path)
         if 'FLUXCOM' in path:
             ds = ds*30
         try:
@@ -196,9 +199,9 @@ def extract_ec_gridded_data(suffix,
             'CABLE_BIOS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
-            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/NEE_2003_2021_5km_LGBM_20230109.nc',
-            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/GPP_2003_2021_5km_LGBM_20230109.nc',
-            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/ER_2003_2021_5km_LGBM_20230109.nc',
+            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/NEE_2003_2021_5km_LGBM_quantiles_20230109.nc',
+            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/GPP_2003_2021_5km_LGBM_quantiles_20230109.nc',
+            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/ER_2003_2021_5km_LGBM_quantiles_20230109.nc',
             'FLUXCOM_RS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs.nc',
             'FLUXCOM_RS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs.nc',
             'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc'
