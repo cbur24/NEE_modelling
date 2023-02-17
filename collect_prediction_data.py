@@ -99,7 +99,7 @@ def collect_prediction_data(time_start,
                                  'VegH',
                                  'MI'
                             ],
-                            chunks=dict(latitude=1100, longitude=1100, time=1),
+                            chunks=dict(latitude=1150, longitude=1100, time=1),
                             export=False,
                             verbose=True
                            ):
