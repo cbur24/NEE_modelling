@@ -160,7 +160,7 @@ def extract_ec_gridded_data(suffix,
     first_var = covariables[0]
     if verbose:
         print('   Extracting '+first_var)
-    first = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{first_var}_{scale}_monthly_2002_2021.nc',
+    first = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{first_var}_{scale}_monthly_2002_2022.nc',
                   flux.time, time_start, time_end, idx)
     
     #extract the rest of the RS variables in loop    
@@ -170,11 +170,11 @@ def extract_ec_gridded_data(suffix,
             print(f'   Extracting {var}')
          
         if var=='MI': #temporary just for testing
-            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/5km/MI_5km_monthly_2002_2021.nc',
+            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/5km/MI_5km_monthly_2002_2022.nc',
                    flux.time, time_start, time_end, idx)
             
         else:
-            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2021.nc',
+            df = extract_rs_vars(f'/g/data/os22/chad_tmp/NEE_modelling/data/{scale}/{var}_{scale}_monthly_2002_2022.nc',
                    flux.time, time_start, time_end, idx)
         
         dffs.append(df)
@@ -196,6 +196,7 @@ def extract_ec_gridded_data(suffix,
         others = {
             'MODIS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/1km/MODIS_GPP_1km_monthly_2002_2021.nc',
             'GOSIF_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/5km/GOSIF_GPP_5km_monthly_2002_2021.nc',
+            'DIFFUSE_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/1km/DIFFUSE_GPP_1km_monthly_2003_2021.nc',
             'CABLE_BIOS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
@@ -216,10 +217,11 @@ def extract_ec_gridded_data(suffix,
             if prod[0]=='MODIS_GPP':
                 other['MODIS_GPP'] = other['MODIS_GPP']*1000
             
+            if prod[0]=='DIFFUSE_GPP':
+                other['DIFFUSE_GPP'] = other['DIFFUSE_GPP']*30
+            
             other_dffs.append(other)
-            # df = pd.merge(df, others_nee, left_index=True, right_index=True)
-            # df = pd.merge(df, others_gpp, left_index=True, right_index=True)
-            # df = pd.merge(df, others_er, left_index=True, right_index=True)
+
         df = df.join(other_dffs)
         df = df.drop(['NEE_mad', 'GPP_mad', 'TER_mad'], axis=1)
     

@@ -110,7 +110,7 @@ def collect_prediction_data(time_start,
         if verbose:
             print(f'   Extracting {var}')
             
-        ds = xr.open_dataset(f'{base}{scale}/{var}_{scale}_monthly_2002_2021.nc',
+        ds = xr.open_dataset(f'{base}{scale}/{var}_{scale}_monthly_2002_2022.nc',
                              chunks=chunks
                             )
         ds = ds.sel(time=slice(time_start, time_end))
