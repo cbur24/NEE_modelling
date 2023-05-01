@@ -20,10 +20,17 @@ def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=
             ds = xr.open_dataset(path).sel(quantile=0.5).drop('quantile')
         else:
             ds = xr.open_dataset(path)
+        
         if 'FLUXCOM' in path:
             ds = ds*30
+            
+        if 'meteo_era5' in path:
+            ds = ds.rename({'lat':'latitude', 'lon':'longitude'})
+            ds=ds[path[-20:-17]]
+
         try:
             ds = ds.rename({'y':'latitude', 'x':'longitude'})
+        
         except:
             pass
     else:
@@ -110,10 +117,12 @@ def extract_ec_gridded_data(suffix,
         
     """
     #-----Eddy covaraince data--------------------------------------------
-    base = 'https://dap.tern.org.au/thredds/dodsC/ecosystem_process/ozflux/'
+    # base = 'https://dap.tern.org.au/thredds/dodsC/ecosystem_process/ozflux/'
+    # base = 'https://dap.tern.org.au/thredds/fileServer/ecosystem_process/ozflux/'
+    base = '/g/data/os22/chad_tmp/NEE_modelling/data/ec_netcdfs/'
     
     # load flux data from site
-    flux = xr.open_dataset(base+suffix)
+    flux = xr.open_dataset(base+suffix[0:5]+'_EC_site.nc')
     if save_ec_data:
         flux.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/data/ec_netcdfs/'+suffix[0:5]+'_EC_site.nc')
     
@@ -204,15 +213,22 @@ def extract_ec_gridded_data(suffix,
             'CABLE_BIOS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
             'CABLE_BIOS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
-            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/NEE_2003_2021_5km_LGBM_quantiles_20230109.nc',
-            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/GPP_2003_2021_5km_LGBM_quantiles_20230109.nc',
-            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/ER_2003_2021_5km_LGBM_quantiles_20230109.nc',
+            'CABLE_POP_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_nbp_100km_monthly_2003_2020.nc',
+            'CABLE_POP_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_gpp_100km_monthly_2003_2020.nc',
+            'CABLE_POP_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_er_100km_monthly_2003_2020.nc',
+            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/NEE_2003_2022_1km_quantiles_20230320.nc',
+            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/GPP_2003_2022_1km_quantiles_20230320.nc',
+            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/ER_2003_2022_1km_quantiles_20230320.nc',
             'FLUXCOM_RS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs.nc',
             'FLUXCOM_RS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs.nc',
-            'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc'
+            'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc',
+            'FLUXCOM_MET_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs_meteo_era5.nc',
+            'FLUXCOM_MET_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs_meteo_era5.nc',
+            'FLUXCOM_MET_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs_meteo_era5.nc'
         }
         other_dffs = []
         for prod in others.items():
+            
             other = extract_rs_vars(prod[1],
                    time, time_start, time_end, idx, add_comparisons=add_comparisons)
             # print(other)
