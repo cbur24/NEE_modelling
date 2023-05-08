@@ -3,4 +3,7 @@
 *.tif
 *.xml
 *.nc
+*.joblib
+data/
+env/
 __pycache__
