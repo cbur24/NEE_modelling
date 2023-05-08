@@ -1,5 +1,5 @@
 
-<img align="centre" src="results/banner_auseflux.png" width="100%">
+<img align="centre" src="results/banner_picture.png" width="100%">
 
 # AusEFlux: Empirical upscaling of terrestrial carbon fluxes over Australia using the OzFlux eddy covariance network
 
