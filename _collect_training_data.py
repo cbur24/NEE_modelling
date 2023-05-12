@@ -122,14 +122,14 @@ def extract_ec_gridded_data(suffix,
     base = '/g/data/os22/chad_tmp/NEE_modelling/data/ec_netcdfs/'
     
     # load flux data from site
-    flux = xr.open_dataset(base+suffix[0:5]+'_EC_site.nc')
+    flux = xr.open_dataset(base+suffix)
     if save_ec_data:
-        flux.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/data/ec_netcdfs/'+suffix[0:5]+'_EC_site.nc')
+        flux.to_netcdf('/g/data/os22/chad_tmp/NEE_modelling/data/ec_netcdfs/'+suffix)
     
     # Set negative GPP, ER, and ET measurements as zero
     flux['GPP_SOLO'] = xr.where(flux.GPP_SOLO < 0, 0, flux.GPP_SOLO)
     flux['ET'] = xr.where(flux.ET < 0, 0, flux.ET)
-    flux['ER_SOLO'] = xr.where(flux.ER_SOLO < 0, 0, flux.ET)
+    flux['ER_SOLO'] = xr.where(flux.ER_SOLO < 0, 0, flux.ER_SOLO)
     
     # offset time to better match gridded data
     flux['time'] = flux.time + np.timedelta64(14,'D') 
