@@ -17,7 +17,11 @@ def extract_ec_vars(flux, var):
 def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=False):
     if add_comparisons:
         if 'quantiles' in path:
-            ds = xr.open_dataset(path).sel(quantile=0.5).drop('quantile')
+            ds = xr.open_dataset(path)
+            for i in ds.data_vars:
+                if "median" in i:
+                    var=i
+            ds = ds[var]  
         else:
             ds = xr.open_dataset(path)
         
@@ -216,9 +220,9 @@ def extract_ec_gridded_data(suffix,
             'CABLE_POP_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_nbp_100km_monthly_2003_2020.nc',
             'CABLE_POP_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_gpp_100km_monthly_2003_2020.nc',
             'CABLE_POP_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_er_100km_monthly_2003_2020.nc',
-            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_NEE_2003_2022_1km_quantiles_v1.0',
-            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_GPP_2003_2022_1km_quantiles_v1.0',
-            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_ER_2003_2022_1km_quantiles_v1.0',
+            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_NEE_2003_2022_1km_quantiles_v1.1.nc',
+            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_GPP_2003_2022_1km_quantiles_v1.1.nc',
+            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_ER_2003_2022_1km_quantiles_v1.1.nc',
             'FLUXCOM_RS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs.nc',
             'FLUXCOM_RS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs.nc',
             'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc',
