@@ -13,7 +13,7 @@ AusEFlux (**Aus**tralian **E**mpirical **Flux**es) is a high resolution (1 km) g
 The results of this analysis, saved as netcdfs, can be accessed at Zenodo: https://doi.org/10.5281/zenodo.7889165. 
 If using the datasets, please cite using:
 
-    Burton, C., Renzullo, L., Rifai, S., Van Dijk, A., 2023. AusEFlux: Empirical upscaling of OzFlux eddy covariance flux tower data over Australia. https://doi.org/10.5281/zenodo.7889165
+    Burton, C., Renzullo, L., Rifai, S., Van Dijk, A., 2023. AusEFlux: Empirical upscaling of OzFlux eddy covariance flux tower data over Australia. https://doi.org/10.5281/zenodo.7947265
 
 The notebooks are intended to be read/run in order of their labelling, i.e., 1 - 9. However, its unlikley if you clone this repo you could run the analysis as its dependent on a large python environment (not described here), and datasets that are stored on the NCI (where this analysis was run). 
 
