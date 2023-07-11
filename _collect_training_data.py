@@ -16,12 +16,15 @@ def extract_ec_vars(flux, var):
 
 def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=False):
     if add_comparisons:
-        if 'quantiles' in path:
+        
+        if any([x in path for x in ['quantiles', 'This_Study']]):
+            
             ds = xr.open_dataset(path)
             for i in ds.data_vars:
                 if "median" in i:
                     var=i
-            ds = ds[var]  
+            ds = ds[var]
+            
         else:
             ds = xr.open_dataset(path)
         
@@ -39,7 +42,7 @@ def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=
             pass
     else:
         ds = xr.open_dataarray(path)
-
+    
     ds = ds.sel(idx, method='nearest').sel(time=slice(time_start, time_end)) # grab pixel
     ds = ds.reindex(time=flux_time, method='nearest', tolerance='1D').compute() 
 
@@ -92,7 +95,7 @@ def extract_ec_gridded_data(suffix,
                                  'VegH',
                                  #'MI'
                             ],
-                            add_comparisons=False,
+                            add_comparisons=None,
                             save_ec_data=False,
                             return_coords=True,
                             export_path=None,
@@ -112,7 +115,9 @@ def extract_ec_gridded_data(suffix,
     return_coords : bool. If True returns the x,y coordinates of the EC tower as columns on the
             pandas dataframe
     verbose : bool. If true progress statements are printed
-    
+    add_comparisons: str, If 'harmonized' then data is extracted from datasets reprojected
+                onto a common 25km grid.  if 'native', then pixels are extracted at the native
+                resolution of each product.
     
     Returns:
     -------
@@ -210,26 +215,48 @@ def extract_ec_gridded_data(suffix,
     df = df.set_index(time)
     
     if add_comparisons:
-        others = {
-            'MODIS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/1km/MODIS_GPP_1km_monthly_2002_2021.nc',
-            'GOSIF_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/5km/GOSIF_GPP_5km_monthly_2002_2021.nc',
-            'DIFFUSE_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/1km/DIFFUSE_GPP_1km_monthly_2003_2021.nc',
-            'CABLE_BIOS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
-            'CABLE_BIOS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
-            'CABLE_BIOS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
-            'CABLE_POP_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_nbp_100km_monthly_2003_2020.nc',
-            'CABLE_POP_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_gpp_100km_monthly_2003_2020.nc',
-            'CABLE_POP_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/CABLE/CABLE-POP_v10/CABLE-POP_er_100km_monthly_2003_2020.nc',
-            'This_Study_NEE':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_NEE_2003_2022_1km_quantiles_v1.1.nc',
-            'This_Study_GPP':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_GPP_2003_2022_1km_quantiles_v1.1.nc',
-            'This_Study_ER':'/g/data/os22/chad_tmp/NEE_modelling/results/predictions/AusEFlux_ER_2003_2022_1km_quantiles_v1.1.nc',
-            'FLUXCOM_RS_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs.nc',
-            'FLUXCOM_RS_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs.nc',
-            'FLUXCOM_RS_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs.nc',
-            'FLUXCOM_MET_GPP':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/GPP_rs_meteo_era5.nc',
-            'FLUXCOM_MET_NEE':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/NEE_rs_meteo_era5.nc',
-            'FLUXCOM_MET_ER':'/g/data/os22/chad_tmp/NEE_modelling/data/FLUXCOM/TER_rs_meteo_era5.nc'
-        }
+        if add_comparisons == 'harmonized':
+            base = '/g/data/os22/chad_tmp/NEE_modelling/results/harmonized/reprojected/'
+            end = '_25km.nc'
+            others = {
+                'MODIS_GPP': base+'MODIS_GPP'+end,
+                'GOSIF_GPP':base+'GOSIF_GPP'+end,
+                'DIFFUSE_GPP':base+'DIFFUSE_GPP'+end,
+                'CABLE_BIOS_NEE':base+'CABLE_BIOS_NEE'+end,
+                'CABLE_BIOS_GPP':base+'CABLE_BIOS_GPP'+end,
+                'CABLE_BIOS_ER':base+'CABLE_BIOS_ER'+end,
+                'This_Study_NEE':base+'This_Study_NEE'+end,
+                'This_Study_GPP':base+'This_Study_GPP'+end,
+                'This_Study_ER':base+'This_Study_ER'+end,
+                'FLUXCOM_RS_GPP':base+'FLUXCOM_RS_GPP'+end,
+                'FLUXCOM_RS_NEE':base+'FLUXCOM_RS_NEE'+end,
+                'FLUXCOM_RS_ER':base+'FLUXCOM_RS_ER'+end
+            }
+            
+        if add_comparisons == 'native':
+            base='/g/data/os22/chad_tmp/NEE_modelling/'
+            others = {
+                'MODIS_GPP':base+'data/1km/MODIS_GPP_1km_monthly_2002_2021.nc',
+                'GOSIF_GPP':base+'data/5km/GOSIF_GPP_5km_monthly_2002_2021.nc',
+                'DIFFUSE_GPP':base+'data/1km/DIFFUSE_GPP_1km_monthly_2003_2021.nc',
+                'CABLE_BIOS_NEE':base+'data/CABLE/CABLE-BIOS/CABLE_BIOS_nbp_25km_monthly_2003_2019.nc',
+                'CABLE_BIOS_GPP':base+'data/CABLE/CABLE-BIOS/CABLE_BIOS_gpp_25km_monthly_2003_2019.nc',
+                'CABLE_BIOS_ER':base+'data/CABLE/CABLE-BIOS/CABLE_BIOS_er_25km_monthly_2003_2019.nc',
+                'CABLE_POP_NEE':base+'data/CABLE/CABLE-POP_v10/CABLE-POP_nbp_100km_monthly_2003_2020.nc',
+                'CABLE_POP_GPP':base+'data/CABLE/CABLE-POP_v10/CABLE-POP_gpp_100km_monthly_2003_2020.nc',
+                'CABLE_POP_ER':base+'data/CABLE/CABLE-POP_v10/CABLE-POP_er_100km_monthly_2003_2020.nc',
+                'This_Study_NEE':base+'results/predictions/AusEFlux_NEE_2003_2022_1km_quantiles_v1.1.nc',
+                'This_Study_GPP':base+'results/predictions/AusEFlux_GPP_2003_2022_1km_quantiles_v1.1.nc',
+                'This_Study_ER':base+'results/predictions/AusEFlux_ER_2003_2022_1km_quantiles_v1.1.nc',
+                'FLUXCOM_RS_GPP':base+'data/FLUXCOM/GPP_rs.nc',
+                'FLUXCOM_RS_NEE':base+'data/FLUXCOM/NEE_rs.nc',
+                'FLUXCOM_RS_ER':base+'data/FLUXCOM/TER_rs.nc',
+                'FLUXCOM_MET_GPP':base+'data/FLUXCOM/GPP_rs_meteo_era5.nc',
+                'FLUXCOM_MET_NEE':base+'data/FLUXCOM/NEE_rs_meteo_era5.nc',
+                'FLUXCOM_MET_ER':base+'data/FLUXCOM/TER_rs_meteo_era5.nc'
+            }
+            
+        
         other_dffs = []
         for prod in others.items():
             
