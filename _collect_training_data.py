@@ -23,6 +23,8 @@ def extract_rs_vars(path, flux_time, time_start, time_end, idx, add_comparisons=
             for i in ds.data_vars:
                 if "median" in i:
                     var=i
+                else:
+                    var=i
             ds = ds[var]
             
         else:
@@ -230,7 +232,7 @@ def extract_ec_gridded_data(suffix,
                 'This_Study_ER':base+'This_Study_ER'+end,
                 'FLUXCOM_RS_GPP':base+'FLUXCOM_RS_GPP'+end,
                 'FLUXCOM_RS_NEE':base+'FLUXCOM_RS_NEE'+end,
-                'FLUXCOM_RS_ER':base+'FLUXCOM_RS_ER'+end
+                'FLUXCOM_RS_ER':base+'FLUXCOM_RS_TER'+end
             }
             
         if add_comparisons == 'native':
@@ -262,7 +264,7 @@ def extract_ec_gridded_data(suffix,
             
             other = extract_rs_vars(prod[1],
                    time, time_start, time_end, idx, add_comparisons=add_comparisons)
-            # print(other)
+            #print(other)
             other = other.rename({other.columns[0] : prod[0]}, axis=1)
             
             if prod[0]=='MODIS_GPP':
@@ -274,7 +276,8 @@ def extract_ec_gridded_data(suffix,
             other_dffs.append(other)
 
         df = df.join(other_dffs)
-        df = df.drop(['NEE_mad', 'GPP_mad', 'TER_mad'], axis=1)
+        if add_comparisons=='native':
+            df = df.drop(['NEE_mad', 'GPP_mad', 'TER_mad'], axis=1)
     
     if export_path:
         df.to_csv(export_path+suffix[0:5]+'_training_data.csv')
