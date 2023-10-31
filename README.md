@@ -4,9 +4,9 @@
 # AusEFlux: Empirical upscaling of terrestrial carbon fluxes over Australia using the OzFlux eddy covariance network
 
 
-The notebooks in this repository decscribe the research methods used in the pre-publication:
+The notebooks in this repository describe the research methods used in the [EGU Biogeosciences publication](https://doi.org/10.5194/bg-20-4109-2023):
 
-"_Empirical upscaling of OzFlux eddy covariance for high-resolution monitoring of terrestrial carbon uptake in Australia_", submitted to EGU Biogeosciences. https://doi.org/10.5194/egusphere-2023-1057
+"_Empirical upscaling of OzFlux eddy covariance for high-resolution monitoring of terrestrial carbon uptake in Australia_" 
 
 AusEFlux (**Aus**tralian **E**mpirical **Flux**es) is a high resolution (1 km) gridded estimate of Gross Primary Productivity, Ecosystem Respiration, and Net Ecosystem Exchange over the Australian continent for the period January 2003 to June 2022.  This new estimate of Australia’s terrestrial carbon cycle provides a benchmark for assessment against Land Surface Model simulations, and a means for monitoring of Australia’s terrestrial carbon cycle at an unprecedented high-resolution.
 
