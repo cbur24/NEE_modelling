@@ -51,11 +51,16 @@ def round_coords(ds):
     don't quite match after reprojection, resulting in adding spurious
     pixels after merge. Converting to float32 rounds coords so they match.
     """
-    ds['latitude'] = ds.latitude.astype('float32')
-    ds['longitude'] = ds.longitude.astype('float32')
-    
-    ds['latitude'] = np.array([round(i,4) for i in ds.latitude.values])
-    ds['longitude'] = np.array([round(i,4) for i in ds.longitude.values])
+    try:
+        ds['latitude'] = ds.latitude.astype('float32')
+        ds['longitude'] = ds.longitude.astype('float32')
+        ds['latitude'] = np.array([round(i,4) for i in ds.latitude.values])
+        ds['longitude'] = np.array([round(i,4) for i in ds.longitude.values])
+    except:
+        ds['x'] = ds.x.astype('float32')
+        ds['y'] = ds.y.astype('float32')
+        ds['x'] = np.array([round(i,4) for i in ds.x.values])
+        ds['y'] = np.array([round(i,4) for i in ds.y.values])
     
     return ds
     
