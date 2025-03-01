@@ -9,14 +9,11 @@ The notebooks in this repository describe the research methods used in the [EGU 
 
 > Burton, C.A., Renzullo, L. J., Rifai, S. W., & Van Dijk, A. I., Empirical upscaling of OzFlux eddy covariance for high-resolution monitoring of terrestrial carbon uptake in Australia. Biogeosciences, 2023. 20(19): p. 4109-4134.
 
-The notebooks are intended to be read/run in order of their labelling, i.e., 1 - 9. However, its unlikley if you clone this repo you could run the analysis as its dependent on a large python environment (not described here), and datasets that are stored on the NCI (where this analysis was run). I more reproducible, operational version of this workflow has been documented on the [AusEFlux repository](https://github.com/cbur24/AusEFlux)
+I more reproducible, operational version of this workflow has been documented on the [AusEFlux repository](https://github.com/cbur24/AusEFlux).
 
-<ins>**Important Update (1/3/2025)**<ins>
-
-Version 2.0 of AusEFlux has just been released (as of March 2025) and was created to operationalise the research datasets. In order to operationalise these datasets, changes to the input datasets were required to align the data sources with datasets that are regularly and reliably updated, along with general improvements. The datasets provided on Zenodo (link below and in the description of this repo) have been reprojected to 5 km resolution to facilitate easier uploading and sharing, but full resolution datasets (both v1.1 and v2.0) can be accessed freely through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
-
+>[!IMPORTANT]
+>**Version Update (1/3/2025):** Version 2.0 of AusEFlux has just been released (as of March 2025) and was created to operationalise the research datasets. In order to operationalise these datasets, changes to the input datasets were required to align the data sources with datasets that are regularly and reliably updated, along with general improvements. The datasets provided on Zenodo (link below and in the description of this repo) have been reprojected to 5 km resolution to facilitate easier uploading and sharing, but full resolution datasets (both v1.1 and v2.0) can be accessed freely through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
 Two Jupyter Notebooks have been created (one for GPP and one for NEE) that demonstrate the differences between the research datasets (v1.1) and the operational datasets (v2.0), including showing the differences in specifications and inputs.  You can view/download these notebooks using the links below:
-
 * [GPP comparison between versions](https://nbviewer.org/github/cbur24/AusEFlux/blob/master/notebooks/analysis/Compare_AusEFlux_versions_GPP.ipynb)
 * [NEE comparisons between versions](https://nbviewer.org/github/cbur24/AusEFlux/blob/master/notebooks/analysis/Compare_AusEFlux_versions_NEE.ipynb)
 
