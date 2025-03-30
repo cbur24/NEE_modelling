@@ -23,7 +23,8 @@ Two Jupyter Notebooks have been created (one for GPP and one for NEE) that demon
 
 ***
 
-Coarser resolution outputs of this analysis, stored as netcdfs, can be accessed at Zenodo: https://doi.org/10.5281/zenodo.7947265. 
+Coarser resolution outputs of this analysis, stored as netcdfs, can be accessed at Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14942139.svg)](https://doi.org/10.5281/zenodo.14942139)
+
 If using the datasets, please cite using:
 
 > Burton, C., Renzullo, L., Rifai, S., Van Dijk, A., 2023. AusEFlux: Empirical upscaling of OzFlux eddy covariance flux tower data over Australia. https://doi.org/10.5281/zenodo.7947265
