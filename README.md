@@ -12,18 +12,17 @@ The notebooks in this repository describe the research methods used in the [EGU 
 I more reproducible, operational version of this workflow has been documented on the [AusEFlux repository](https://github.com/cbur24/AusEFlux).
 
 >[!IMPORTANT]
->**Version Update (1/3/2025):** Version 2.0 of AusEFlux has just been released (as of March 2025) and was created to operationalise the research datasets. In order to operationalise these datasets, changes to the input datasets were required to align the data sources with datasets that are regularly and reliably updated, along with general improvements. The datasets provided on Zenodo (link below and in the description of this repo) have been reprojected to 5 km resolution to facilitate easier uploading and sharing, but full resolution datasets (both v1.1 and v2.0) can be accessed freely through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
-Two Jupyter Notebooks have been created (one for GPP and one for NEE) that demonstrate the differences between the research datasets (v1.1) and the operational datasets (v2.0), including showing the differences in specifications and inputs.  You can view/download these notebooks using the links below:
+>**Version Update (17/5/2025):** Version 2.1 of AusEFlux has just been released and was created to operationalise the research datasets. In order to operationalise these datasets, changes to the input datasets were required to align the data sources with datasets that are regularly and reliably updated, along with general improvements. The datasets provided on Zenodo (link below and in the description of this repo) have been reprojected to 5 km resolution to facilitate easier uploading and sharing, but full resolution datasets (both v1.1 and v2.1) can be accessed freely through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
+
+Two Jupyter Notebooks have been created (one for GPP and one for NEE) that demonstrate the differences between the research datasets (v1.1) and the operational datasets (v2.1), including showing the differences in specifications and inputs.  You can view/download these notebooks using the links below:
 * [GPP comparison between versions](https://nbviewer.org/github/cbur24/AusEFlux/blob/master/notebooks/analysis/Compare_AusEFlux_versions_GPP.ipynb)
 * [NEE comparisons between versions](https://nbviewer.org/github/cbur24/AusEFlux/blob/master/notebooks/analysis/Compare_AusEFlux_versions_NEE.ipynb)
 
 **Version Guide**
 * _v1.1:_ This version of the datasets are those used to inform the EGU Publication linked above. Its time range is 2003-July 2022, and its spatial resolution is 5 km on Zenodo, but the 1 km resolution datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/v1/catalog.html).
-* _v2.0:_ This is the operational version of the dataset, its includes several improvements over version 1.1. Its time-range is 2003-2024 (and will be updated annually), and its spatial resolution is 500m.  A 5 km reprojected version of the dataset is included on Zenodo, but the 500 metre datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/v2/catalog.html).
+* _v2.1:_ This is the operational version of the dataset, its includes several improvements over version 1.1. Its time-range is 2003-2024 (and will be updated annually), and its spatial resolution is 500m.  A 5 km reprojected version of the dataset is included on [Zenodo](https://doi.org/10.5281/zenodo.14942139), but the 500 metre datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
 
 ***
-
-Coarser resolution outputs of this analysis, stored as netcdfs, can be accessed at Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14942139.svg)](https://doi.org/10.5281/zenodo.14942139)
 
 If using the datasets, please cite using:
 
