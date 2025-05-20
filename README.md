@@ -20,12 +20,12 @@ Two Jupyter Notebooks have been created (one for GPP and one for NEE) that demon
 
 **Version Guide**
 * _v1.1:_ This version of the datasets are those used to inform the EGU Publication linked above. Its time range is 2003-July 2022, and its spatial resolution is 5 km on Zenodo, but the 1 km resolution datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/v1/catalog.html).
-* _v2.1:_ This is the operational version of the dataset, its includes several improvements over version 1.1. Its time-range is 2003-2024 (and will be updated annually), and its spatial resolution is 500m.  A 5 km reprojected version of the dataset is included on [Zenodo](https://doi.org/10.5281/zenodo.14942139), but the 500 metre datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
+* _v2.1:_ This is the operational version of the dataset, its includes several improvements over version 1.1. Its time-range is 2003-2024 (and will be updated annually), and its spatial resolution is 500m.  A 5 km reprojected version of the dataset is included on [Zenodo](https://zenodo.org/records/15449020), but the 500 metre datasets can be accessed through [NCI's THREDDS portal](https://thredds.nci.org.au/thredds/catalog/ub8/au/AusEFlux/catalog.html).
 
 ***
 
 If using the datasets, please cite using:
 
-> Burton, C., Renzullo, L., Rifai, S., Van Dijk, A., 2023. AusEFlux: Empirical upscaling of OzFlux eddy covariance flux tower data over Australia. https://doi.org/10.5281/zenodo.7947265
+>Burton, C., Renzullo, L., Rifai, S., & Van Dijk, A. (2025). AusEFlux: Empirical upscaling of OzFlux eddy covariance flux tower data over Australia (v2.1) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.15449020
 
 **License:** The code in this repository is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
